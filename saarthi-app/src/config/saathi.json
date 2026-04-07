@@ -1,11 +1,12 @@
 {
   "version": 1,
-  "defaultContextId": "listening-general",
+  "defaultContextId": "saathi-support",
   "defaultScriptId": "story-to-saathi-demo",
   "contexts": [
     {
       "id": "saathi-support",
       "label": "Saathi",
+      "subLabel": "Issue support",
       "flow": "companion"
     }
   ],

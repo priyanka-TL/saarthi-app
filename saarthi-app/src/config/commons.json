@@ -5,15 +5,9 @@
   "contexts": [
     {
       "id": "commons-general",
-      "label": "commons Context",
-      "subLabel": "Capture discussions",
-      "flow": "capture"
-    },
-    {
-      "id": "commons-story",
-      "label": "commons Context",
-      "subLabel": "Story capture",
-      "flow": "story"
+      "label": "SG Commons Portal",
+      "subLabel": "Resource discovery",
+      "flow": "commons"
     }
   ],
   "routingRules": [
