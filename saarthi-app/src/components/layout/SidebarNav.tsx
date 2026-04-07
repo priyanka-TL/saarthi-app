@@ -1,102 +1,163 @@
 import {
   BookOpen,
-  ClipboardList,
-  Compass,
-  FilePlus2,
+  Ear,
+  Globe,
   Lightbulb,
-  MessageSquarePlus,
+  MessagesSquare,
   Sparkles,
+  WandSparkles,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { FlowKey } from '@/types/saarthi'
 
-interface NavItem {
+interface CapabilityItem {
   key: FlowKey
   label: string
-  icon: ComponentType<{ className?: string }>
   subtitle: string
+  icon: ComponentType<{ className?: string }>
+  subActions?: Array<{ key: FlowKey; label: string }>
 }
 
-const navItems: NavItem[] = [
+const capabilityItems: CapabilityItem[] = [
   {
     key: 'capture',
-    label: 'Capture Challenge',
-    icon: MessageSquarePlus,
-    subtitle: 'Sense',
-  },
-  {
-    key: 'insights',
-    label: 'Insights',
-    icon: Lightbulb,
-    subtitle: 'Make Sense',
+    label: 'Listening at Scale',
+    subtitle: 'Synthesize field insights into actionable knowledge',
+    icon: Ear,
+    subActions: [
+      { key: 'capture', label: 'Capture Discussions' },
+      { key: 'story', label: 'Record Stories' },
+      { key: 'capture', label: 'Capture Feedback' },
+    ],
   },
   {
     key: 'recommendations',
-    label: 'Recommendations',
-    icon: Compass,
-    subtitle: 'Learn',
+    label: 'Contextual Recommendations',
+    subtitle: 'Delivering relevant, localized guidance',
+    icon: WandSparkles,
+    subActions: [{ key: 'recommendations', label: 'Recommendation Engine' }],
   },
   {
-    key: 'improvement',
-    label: 'Improvement Plan',
-    icon: ClipboardList,
-    subtitle: 'Improve',
-  },
-  {
-    key: 'story',
-    label: 'Story Capture',
-    icon: FilePlus2,
-    subtitle: 'Mitra',
+    key: 'insights',
+    label: 'Insights Engine',
+    subtitle: 'Evidence analysis and data insights',
+    icon: Lightbulb,
   },
   {
     key: 'companion',
-    label: 'Companion',
+    label: 'Saathi - MI Companion',
+    subtitle: 'Real-time assistance to first-mile actors',
     icon: Sparkles,
-    subtitle: 'Saathi',
   },
   {
     key: 'program',
-    label: 'Program/Design Companion',
+    label: 'Design Companion',
+    subtitle: 'Support for program designers',
     icon: BookOpen,
-    subtitle: 'Program',
   },
+  {
+    key: 'recommendations',
+    label: 'SG Commons Portal',
+    subtitle: 'AI search for ecosystem assets',
+    icon: Globe,
+  },
+]
+
+const quickActions: Array<{ key: FlowKey; label: string; icon: ComponentType<{ className?: string }> }> = [
+  { key: 'capture', label: 'Classroom Challenge', icon: MessagesSquare },
+  { key: 'insights', label: 'Get Insights', icon: Lightbulb },
+  { key: 'recommendations', label: 'Find Resources', icon: Globe },
+  { key: 'companion', label: 'Connect Peers', icon: Sparkles },
 ]
 
 interface SidebarNavProps {
   activeFlow: FlowKey
   onFlowChange: (flow: FlowKey) => void
-  vertical?: boolean
 }
 
-export function SidebarNav({ activeFlow, onFlowChange, vertical = true }: SidebarNavProps) {
+export function SidebarNav({ activeFlow, onFlowChange }: SidebarNavProps) {
   return (
-    <nav className={cn('gap-2', vertical ? 'flex flex-col' : 'grid grid-cols-1 sm:grid-cols-2')}>
-      {navItems.map((item) => {
-        const Icon = item.icon
-        const active = item.key === activeFlow
-        return (
-          <Button
-            key={item.key}
-            className={cn(
-              'h-auto justify-start gap-3 rounded-xl px-3 py-3 text-left font-medium',
-              active
-                ? 'border border-primary/30 bg-primary/15 text-primary hover:bg-primary/20'
-                : 'border border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-card hover:text-foreground',
-            )}
-            onClick={() => onFlowChange(item.key)}
-            variant="ghost"
-          >
-            <Icon className="h-4 w-4 shrink-0" />
-            <div>
-              <p className="text-sm">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.subtitle}</p>
-            </div>
-          </Button>
-        )
-      })}
-    </nav>
+    <div className="space-y-5 text-foreground">
+      <div>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Capabilities</p>
+        <div className="space-y-2.5">
+          {capabilityItems.map((item) => {
+            const Icon = item.icon
+            const active = item.key === activeFlow
+            return (
+              <button
+                className={cn(
+                  'w-full rounded-2xl border px-3 py-3 text-left transition-colors',
+                  active
+                    ? 'border-primary/35 bg-primary/10 text-foreground'
+                    : 'border-border bg-card/90 text-foreground hover:border-primary/25 hover:bg-muted',
+                )}
+                key={item.label}
+                onClick={() => onFlowChange(item.key)}
+                type="button"
+              >
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <Icon className="h-4 w-4 text-primary" />
+                  {item.label}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">{item.subtitle}</p>
+
+                {item.subActions ? (
+                  <div className="mt-3 space-y-1.5">
+                    {item.subActions.map((subAction) => (
+                      <button
+                        className={cn(
+                          'block w-full rounded-lg border px-2.5 py-1.5 text-left text-xs font-medium transition-colors',
+                          subAction.key === activeFlow
+                            ? 'border-primary/30 bg-primary/15 text-foreground'
+                            : 'border-border bg-background text-muted-foreground hover:bg-muted',
+                        )}
+                        key={`${item.label}-${subAction.label}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          onFlowChange(subAction.key)
+                        }}
+                        type="button"
+                      >
+                        {subAction.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Quick Actions</p>
+        <div className="grid grid-cols-2 gap-2">
+          {quickActions.map((action) => {
+            const Icon = action.icon
+            return (
+              <button
+                className={cn(
+                  'rounded-xl border px-2.5 py-2 text-left text-xs font-semibold transition-colors',
+                  action.key === activeFlow
+                    ? 'border-primary/30 bg-primary/10 text-foreground'
+                    : 'border-border bg-card/85 text-foreground/85 hover:bg-muted',
+                )}
+                key={action.label}
+                onClick={() => onFlowChange(action.key)}
+                type="button"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Icon className="h-3.5 w-3.5 text-primary" />
+                  {action.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
   )
 }
