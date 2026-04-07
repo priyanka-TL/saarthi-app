@@ -27,9 +27,9 @@ export function AppShell({
   selectedChallenge,
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/45 text-foreground">
-      <div className="flex min-h-screen w-full flex-col lg:flex-row">
-        <aside className="hidden w-[320px] border-r border-border/70 bg-card/80 px-3 py-5 backdrop-blur lg:block">
+    <div className="h-dvh overflow-hidden bg-gradient-to-br from-background via-background to-secondary/45 text-foreground">
+      <div className="flex h-full w-full flex-col lg:flex-row">
+        <aside className="hidden h-full w-[320px] overflow-y-auto border-r border-border/70 bg-card/80 px-3 py-5 backdrop-blur lg:block">
           <BrandBlock
             selectedChallenge={selectedChallenge}
             selectedChallengeLabel={selectedChallengeLabel}
@@ -37,7 +37,7 @@ export function AppShell({
           <SidebarNav activeFlow={activeFlow} onFlowChange={onFlowChange} />
         </aside>
 
-        <main className="flex flex-1 min-h-screen flex-col lg:min-h-0">
+        <main className="flex h-full flex-1 min-h-0 flex-col overflow-hidden">
           <header className="sticky top-0 z-20 border-b border-border/70 bg-card/80 px-4 py-3 backdrop-blur md:px-6 lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -75,7 +75,7 @@ export function AppShell({
             </div>
           </header>
 
-          <section className="flex flex-1 min-h-0 p-4 md:p-6 lg:p-8">
+          <section className="flex flex-1 min-h-0 overflow-hidden p-4 md:p-6 lg:p-8">
             {children}
           </section>
         </main>

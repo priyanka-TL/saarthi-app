@@ -68,7 +68,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         role: 'assistant',
         flow: 'home',
         timestamp: new Date().toISOString(),
-        text: `Namaste Akash. I am SAARTHI. How can i help you today!!`,
+        text: `Namaste Akash. I am SAARTHI. How can I help you today?`,
       },
     ]
   })
@@ -406,7 +406,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         </p>
       </div>
 
-      <div className="flex-1 space-y-5 overflow-y-auto px-4 py-5 md:px-6">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-5 md:px-6">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
