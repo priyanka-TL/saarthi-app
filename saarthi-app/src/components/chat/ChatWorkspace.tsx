@@ -68,7 +68,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         role: 'assistant',
         flow: 'home',
         timestamp: new Date().toISOString(),
-        text: `Namaste Akash. I am SAARTHI. How can i help you today!!`,
+        text: `Namaste Akash. I am SAARTHI. How can I help you today?`,
       },
     ]
   })
