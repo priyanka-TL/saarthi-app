@@ -22,13 +22,13 @@ export function AppShell({
 }: AppShellProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8f4eb] via-[#fefdfa] to-[#f7fafc] text-foreground">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col lg:flex-row">
+      <div className="flex min-h-screen w-full flex-col lg:flex-row">
         <aside className="hidden w-[320px] border-r border-border/70 bg-[#f8f3ea]/80 px-3 py-5 backdrop-blur lg:block">
           <BrandBlock selectedChallenge={selectedChallenge} selectedChallengeLabel={selectedChallengeLabel} />
           <SidebarNav activeFlow={activeFlow} onFlowChange={onFlowChange} />
         </aside>
 
-        <main className="flex-1">
+        <main className="flex flex-1 min-h-screen flex-col lg:min-h-0">
           <header className="sticky top-0 z-20 border-b border-border/70 bg-card/80 px-4 py-3 backdrop-blur md:px-6 lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -54,7 +54,7 @@ export function AppShell({
             </div>
           </header>
 
-          <section className="p-4 md:p-6 lg:p-8">{children}</section>
+          <section className="flex flex-1 min-h-0 p-4 md:p-6 lg:p-8">{children}</section>
         </main>
       </div>
     </div>

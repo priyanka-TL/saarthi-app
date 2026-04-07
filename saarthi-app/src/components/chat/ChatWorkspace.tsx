@@ -7,13 +7,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { challengeData } from '@/data/mockData'
 import { useSaarthiState } from '@/hooks/useSaarthiState'
 import {
-  getChatSuggestions,
   getComposerPlaceholder,
   getFlowLabel,
   resolveChatResponse,
 } from '@/lib/chatEngine'
 import {
-  getDefaultRouteContext,
   getDemoScriptById,
   homeFlowConfig,
   homeSimulationEnabled,
@@ -39,7 +37,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const awaitingScriptedUserStepRef = useRef<DemoUserStep | null>(null)
   const resumeSimulationRef = useRef<(() => void) | null>(null)
   const [draft, setDraft] = useState('')
-  const [currentContext, setCurrentContext] = useState<RouteContext>(() => getDefaultRouteContext(homeFlowConfig))
+  const [currentContext, setCurrentContext] = useState<RouteContext | null>(null)
 
   const {
     selectedChallenge,
@@ -61,12 +59,11 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const dataset = challengeData[selectedChallenge]
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const initialContext = getDefaultRouteContext(homeFlowConfig)
     return [
       {
         id: 'msg-initial',
         role: 'assistant',
-        flow: initialContext.flow,
+        flow: 'home',
         timestamp: new Date().toISOString(),
         text: `Namaste Akash. I am SAARTHI. How can i help you today!!`,
       },
@@ -84,15 +81,11 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     activeFlowRef.current = activeFlow
   }, [activeFlow])
 
-  const effectiveFlow = activeFlow === 'home' ? currentContext.flow : activeFlow
+  const effectiveFlow = activeFlow === 'home' ? currentContext?.flow ?? 'home' : activeFlow
 
-  const contextLabel = activeFlow === 'home' ? currentContext.label : getFlowLabel(activeFlow)
-  const subContextLabel = activeFlow === 'home' ? currentContext.subLabel : undefined
-
-  const suggestions = useMemo(
-    () => getChatSuggestions({ flow: effectiveFlow, dataset, selectedRecommendations }),
-    [effectiveFlow, dataset, selectedRecommendations],
-  )
+  const contextLabel = activeFlow === 'home' ? currentContext?.label : getFlowLabel(activeFlow)
+  const subContextLabel = activeFlow === 'home' ? currentContext?.subLabel : undefined
+  const isHomeContextUnset = activeFlow === 'home' && !currentContext
 
   const demoScript = useMemo(
     () => getDemoScriptById(homeFlowConfig.defaultScriptId, homeFlowConfig),
@@ -109,7 +102,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }, [])
 
   const appendScriptedAssistantTurn = useCallback((text: string, blocks?: ChatBlock[]) => {
-    const routedFlow = activeFlowRef.current === 'home' ? currentContextRef.current.flow : activeFlowRef.current
+    const routedFlow = activeFlowRef.current === 'home' ? currentContextRef.current?.flow ?? 'home' : activeFlowRef.current
 
     const assistantMessage: ChatMessage = {
       id: nextId(),
@@ -131,13 +124,13 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
 
     const routeMatch = resolveRouteMatch(input, homeFlowConfig)
 
-    let responseFlow: FlowKey = activeFlow === 'home' ? currentContext.flow : activeFlow
+    let responseFlow: FlowKey = activeFlow === 'home' ? currentContext?.flow ?? 'home' : activeFlow
     let contextNoticeMessage: ChatMessage | null = null
 
     if (routeMatch) {
       responseFlow = routeMatch.context.flow
 
-      if (routeMatch.context.id !== currentContext.id) {
+      if (routeMatch.context.id !== currentContext?.id) {
         setCurrentContext(routeMatch.context)
         contextNoticeMessage = {
           id: nextId(),
@@ -353,18 +346,31 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }
 
   return (
-    <div className="flex h-[calc(100vh-8.5rem)] min-h-[560px] flex-col overflow-hidden rounded-2xl border border-border bg-card/75 shadow-sm">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card/75 shadow-sm">
       <div className="border-b border-border/80 bg-background/75 px-4 py-3 md:px-6">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge className="border-primary/30 bg-primary/10 text-primary" variant="outline">
-            Context: {contextLabel}
-          </Badge>
-          {subContextLabel ? <Badge variant="outline">Sub-context: {subContextLabel}</Badge> : null}
-          <Badge variant="secondary">Challenge: {dataset.label}</Badge>
-          {homeSimulationEnabled ? <Badge variant="secondary">Simulation: Enabled</Badge> : null}
+          {isHomeContextUnset ? (
+            <>
+              <Badge className="border-dashed border-border text-muted-foreground" variant="outline">
+                Context: Not selected yet
+              </Badge>
+              <Badge className="border-dashed border-border text-muted-foreground" variant="outline">
+                Sub-context: Waiting for intent
+              </Badge>
+            </>
+          ) : (
+            <>
+              <Badge className="border-primary/30 bg-primary/10 text-primary" variant="outline">
+                Context: {contextLabel}
+              </Badge>
+              {subContextLabel ? <Badge variant="outline">Sub-context: {subContextLabel}</Badge> : null}
+            </>
+          )}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          {activeFlow === 'home'
+          {isHomeContextUnset
+            ? 'Share what you want to do, and SAARTHI will auto-select the right context.'
+            : activeFlow === 'home'
             ? 'Home routing evaluates every user turn and keeps context sticky until a new match appears.'
             : 'Advanced mode is manual, but matching intents still route this shared thread automatically.'}
         </p>
@@ -378,19 +384,6 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       </div>
 
       <div className="sticky bottom-0 border-t border-border/80 bg-card/95 px-4 py-3 backdrop-blur md:px-6">
-        <div className="mb-3 flex flex-wrap gap-2">
-          {suggestions.map((suggestion) => (
-            <button
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/25 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
-              key={suggestion.id}
-              onClick={() => sendPrompt(suggestion.prompt)}
-              type="button"
-            >
-              {suggestion.label}
-            </button>
-          ))}
-        </div>
-
         <form className="flex items-end gap-2" onSubmit={onSubmit}>
           <Textarea
             className="max-h-40 min-h-[52px] resize-none rounded-2xl bg-background"
