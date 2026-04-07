@@ -49,6 +49,7 @@ const defaultPostStepDelayMs = 700
 export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) {
   const idRef = useRef(0)
   const endRef = useRef<HTMLDivElement | null>(null)
+  const prefersReducedMotionRef = useRef(false)
   const simulationStateRef = useRef<'idle' | 'running' | 'awaiting-user' | 'completed'>('idle')
   const awaitingScriptedUserStepRef = useRef<DemoUserStep | null>(null)
   const resumeSimulationRef = useRef<(() => void) | null>(null)
@@ -170,6 +171,11 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     || (isStoryRoutedMode && !storyContext)
     || (isSaathiRoutedMode && !saathiContext)
     || (isCommonsRoutedMode && !commonsContext)
+  const contextBadgeAnimationKey = [
+    isRoutedContextUnset ? 'unset' : 'set',
+    contextLabel ?? 'context',
+    subContextLabel ?? 'sub-context',
+  ].join('|')
 
   const homeDemoScript = useMemo(
     () => getDemoScriptById(homeFlowConfig.defaultScriptId, homeFlowConfig),
@@ -193,7 +199,28 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   )
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+    const syncPreference = () => {
+      prefersReducedMotionRef.current = mediaQuery.matches
+    }
+
+    syncPreference()
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', syncPreference)
+      return () => mediaQuery.removeEventListener('change', syncPreference)
+    }
+
+    mediaQuery.addListener(syncPreference)
+    return () => mediaQuery.removeListener(syncPreference)
+  }, [])
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({
+      behavior: prefersReducedMotionRef.current ? 'auto' : 'smooth',
+      block: 'end',
+    })
   }, [isAssistantThinking, messages])
 
   const nextId = useCallback(() => {
@@ -611,10 +638,15 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     }
   }
 
+  const isSendDisabled = isDraftAutoTyping || isAssistantThinking || !draft.trim()
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card/75 shadow-sm">
       <div className="border-b border-border/80 bg-background/75 px-4 py-3 md:px-6">
-        <div className="flex flex-wrap items-center gap-2">
+        <div
+          className="flex flex-wrap items-center gap-2 motion-safe:animate-fade-in motion-safe:[animation-fill-mode:both]"
+          key={contextBadgeAnimationKey}
+        >
           {isRoutedContextUnset ? (
             <>
               <Badge className="border-dashed border-border text-muted-foreground" variant="outline">
@@ -669,7 +701,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       <div className="sticky bottom-0 border-t border-border/80 bg-card/95 px-4 py-3 backdrop-blur md:px-6">
         <form className="flex items-end gap-2" onSubmit={onSubmit}>
           <Textarea
-            className="max-h-40 min-h-[52px] resize-none rounded-2xl bg-background"
+            className="max-h-40 min-h-[52px] resize-none rounded-2xl bg-background transition-[background-color,border-color,box-shadow] motion-transition-md focus-visible:border-primary/40 focus-visible:bg-card"
             disabled={isDraftAutoTyping || isAssistantThinking}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={onKeyDown}
@@ -677,8 +709,13 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
             value={draft}
           />
           <Button
-            className="h-11 rounded-xl px-4"
-            disabled={isDraftAutoTyping || isAssistantThinking || !draft.trim()}
+            className={cn(
+              'h-11 rounded-xl px-4 transition-[transform,opacity,background-color,box-shadow] motion-transition-fast',
+              isSendDisabled
+                ? 'scale-[0.98] opacity-75'
+                : 'scale-100 opacity-100 motion-safe:hover:scale-[1.01]',
+            )}
+            disabled={isSendDisabled}
             type="submit"
           >
             <SendHorizontal className="mr-1 h-4 w-4" />
@@ -696,7 +733,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
   if (isSystem) {
     return (
-      <div className="flex justify-center">
+      <div className="flex justify-center motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]">
         <div className="max-w-[900px] rounded-full border border-dashed border-primary/40 bg-primary/5 px-4 py-2 text-center">
           <p className="text-xs font-medium text-primary">{message.text}</p>
           <p className="mt-1 text-[11px] text-muted-foreground">
@@ -708,7 +745,14 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   }
 
   return (
-    <div className={cn('flex gap-3', isUser ? 'justify-end' : 'justify-start')}>
+    <div
+      className={cn(
+        'flex gap-3 motion-safe:[animation-fill-mode:both]',
+        isUser
+          ? 'justify-end motion-safe:animate-slide-x-sm'
+          : 'justify-start motion-safe:animate-fade-up-sm',
+      )}
+    >
       {!isUser ? (
         <div className="mt-1 shrink-0 text-primary">
           <Bot className="h-5 w-5" />
@@ -745,16 +789,16 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
 function AssistantThinkingBubble({ label }: { label: string }) {
   return (
-    <div className="flex justify-start gap-3">
+    <div className="flex justify-start gap-3 motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]">
       <div className="mt-1 shrink-0 text-primary">
         <Bot className="h-5 w-5" />
       </div>
       <div className="max-w-[900px] rounded-2xl border border-border bg-background px-4 py-3 text-foreground">
         <p className="text-sm text-muted-foreground">{label}</p>
         <div className="mt-2 flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70 [animation-delay:0ms]" />
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70 [animation-delay:150ms]" />
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70 [animation-delay:300ms]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary/70 motion-safe:animate-soft-highlight motion-safe:[animation-delay:0ms]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary/70 motion-safe:animate-soft-highlight motion-safe:[animation-delay:140ms]" />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary/70 motion-safe:animate-soft-highlight motion-safe:[animation-delay:280ms]" />
         </div>
       </div>
     </div>
@@ -765,9 +809,15 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
   return (
     <div className="mt-3 space-y-2.5">
       {blocks.map((block, index) => {
+        const animationDelay = `${Math.min(index, 6) * 45}ms`
+
         if (block.type === 'list') {
           return (
-            <div className="rounded-xl border border-border bg-card/70 p-3" key={`${block.title}-${index}`}>
+            <div
+              className="rounded-xl border border-border bg-card/70 p-3 motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]"
+              key={`${block.title}-${index}`}
+              style={{ animationDelay }}
+            >
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{block.title}</p>
               <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-foreground">
                 {block.items.map((item) => (
@@ -780,7 +830,11 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
 
         if (block.type === 'kv') {
           return (
-            <div className="rounded-xl border border-border bg-card/70 p-3" key={`${block.title}-${index}`}>
+            <div
+              className="rounded-xl border border-border bg-card/70 p-3 motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]"
+              key={`${block.title}-${index}`}
+              style={{ animationDelay }}
+            >
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{block.title}</p>
               <div className="mt-2 grid gap-1.5">
                 {block.rows.map((row) => (
@@ -796,7 +850,11 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
 
         if (block.type === 'tags') {
           return (
-            <div className="rounded-xl border border-border bg-card/70 p-3" key={`${block.title ?? 'tags'}-${index}`}>
+            <div
+              className="rounded-xl border border-border bg-card/70 p-3 motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]"
+              key={`${block.title ?? 'tags'}-${index}`}
+              style={{ animationDelay }}
+            >
               {block.title ? (
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{block.title}</p>
               ) : null}
@@ -815,7 +873,11 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
         }
 
         return (
-          <div className="rounded-xl border border-border bg-card/70 p-3" key={`${block.title ?? 'text'}-${index}`}>
+          <div
+            className="rounded-xl border border-border bg-card/70 p-3 motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]"
+            key={`${block.title ?? 'text'}-${index}`}
+            style={{ animationDelay }}
+          >
             {block.title ? (
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{block.title}</p>
             ) : null}

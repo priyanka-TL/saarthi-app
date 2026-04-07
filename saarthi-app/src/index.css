@@ -25,6 +25,10 @@
     --ring: 217 91% 60%;
 
     --radius: 1rem;
+    --motion-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --motion-duration-fast: 120ms;
+    --motion-duration-md: 180ms;
+    --motion-duration-slow: 240ms;
   }
 
   * {
@@ -46,5 +50,33 @@
   h3 {
     font-family: 'Fraunces', Georgia, serif;
     letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .motion-transition-fast {
+    transition-duration: var(--motion-duration-fast);
+    transition-timing-function: var(--motion-ease-standard);
+  }
+
+  .motion-transition-md {
+    transition-duration: var(--motion-duration-md);
+    transition-timing-function: var(--motion-ease-standard);
+  }
+
+  .motion-transition-slow {
+    transition-duration: var(--motion-duration-slow);
+    transition-timing-function: var(--motion-ease-standard);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }

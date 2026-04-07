@@ -21,7 +21,7 @@
       "id": "story-capture-intent",
       "phrases": [],
       "targetContextId": "listening-story",
-      "notice": "Context switched to Listening at Scale Context. Sub-context set to Story capture."
+      "notice": ""
     }
   ],
   "demoScripts": [

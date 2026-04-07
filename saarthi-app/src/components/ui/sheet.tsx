@@ -14,7 +14,7 @@ const SheetOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
-    className={cn('fixed inset-0 z-50 bg-black/35 data-[state=open]:animate-fade-in', className)}
+    className={cn('fixed inset-0 z-50 bg-black/35 data-[state=open]:motion-safe:animate-fade-in', className)}
     {...props}
     ref={ref}
   />
@@ -30,13 +30,13 @@ const SheetContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed inset-y-0 right-0 z-50 h-full w-full max-w-xl overflow-y-auto border-l border-border bg-card p-6 shadow-xl data-[state=open]:animate-slide-in',
+        'fixed inset-y-0 right-0 z-50 h-full w-full max-w-xl overflow-y-auto border-l border-border bg-card p-6 shadow-xl data-[state=open]:motion-safe:animate-slide-in',
         className,
       )}
       {...props}
     >
       {children}
-      <SheetClose className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+      <SheetClose className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground transition-colors motion-transition-fast hover:bg-muted hover:text-foreground">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </SheetClose>

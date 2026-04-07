@@ -29,7 +29,10 @@ export function AppShell({
   return (
     <div className="h-dvh overflow-hidden bg-gradient-to-br from-background via-background to-secondary/45 text-foreground">
       <div className="flex h-full w-full flex-col lg:flex-row">
-        <aside className="hidden h-full w-[320px] overflow-y-auto border-r border-border/70 bg-card/80 px-3 py-5 backdrop-blur lg:block">
+        <aside
+          className="hidden h-full w-[320px] overflow-y-auto border-r border-border/70 bg-card/80 px-3 py-5 backdrop-blur motion-safe:animate-fade-up-sm lg:block"
+          style={{ animationDelay: '30ms', animationFillMode: 'both' }}
+        >
           <BrandBlock
             selectedChallenge={selectedChallenge}
             selectedChallengeLabel={selectedChallengeLabel}
@@ -37,7 +40,10 @@ export function AppShell({
           <SidebarNav activeFlow={activeFlow} onFlowChange={onFlowChange} />
         </aside>
 
-        <main className="flex h-full flex-1 min-h-0 flex-col overflow-hidden">
+        <main
+          className="flex h-full flex-1 min-h-0 flex-col overflow-hidden motion-safe:animate-fade-up-sm"
+          style={{ animationDelay: '90ms', animationFillMode: 'both' }}
+        >
           <header className="sticky top-0 z-20 border-b border-border/70 bg-card/80 px-4 py-3 backdrop-blur md:px-6 lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -108,7 +114,7 @@ function BrandBlock({
           </div>
         </div>
         <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 motion-safe:animate-soft-highlight" />
           Online
         </div>
       </div>
