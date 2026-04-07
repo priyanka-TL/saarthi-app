@@ -12,6 +12,12 @@ import {
   resolveChatResponse,
 } from '@/lib/chatEngine'
 import {
+  feedbackFlowConfig,
+  feedbackSimulationEnabled,
+  getFeedbackDemoScriptById,
+  resolveFeedbackRouteMatch,
+} from '@/lib/feedbackFlow'
+import {
   getDemoScriptById,
   homeFlowConfig,
   homeSimulationEnabled,
@@ -40,7 +46,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const [isDraftAutoTyping, setIsDraftAutoTyping] = useState(false)
   const [isAssistantThinking, setIsAssistantThinking] = useState(false)
   const [assistantThinkingLabel, setAssistantThinkingLabel] = useState('Reviewing your input...')
-  const [currentContext, setCurrentContext] = useState<RouteContext | null>(null)
+  const [homeContext, setHomeContext] = useState<RouteContext | null>(null)
+  const [feedbackContext, setFeedbackContext] = useState<RouteContext | null>(null)
 
   const {
     selectedChallenge,
@@ -73,25 +80,45 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     ]
   })
 
-  const currentContextRef = useRef(currentContext)
+  const homeContextRef = useRef(homeContext)
+  const feedbackContextRef = useRef(feedbackContext)
   const activeFlowRef = useRef(activeFlow)
 
   useEffect(() => {
-    currentContextRef.current = currentContext
-  }, [currentContext])
+    homeContextRef.current = homeContext
+  }, [homeContext])
+
+  useEffect(() => {
+    feedbackContextRef.current = feedbackContext
+  }, [feedbackContext])
 
   useEffect(() => {
     activeFlowRef.current = activeFlow
   }, [activeFlow])
 
-  const effectiveFlow = activeFlow === 'home' ? currentContext?.flow ?? 'home' : activeFlow
+  const isHomeRoutedMode = activeFlow === 'home'
+  const isFeedbackRoutedMode = activeFlow === 'feedback'
 
-  const contextLabel = activeFlow === 'home' ? currentContext?.label : getFlowLabel(activeFlow)
-  const subContextLabel = activeFlow === 'home' ? currentContext?.subLabel : undefined
-  const isHomeContextUnset = activeFlow === 'home' && !currentContext
+  const effectiveFlow = isHomeRoutedMode
+    ? homeContext?.flow ?? 'home'
+    : isFeedbackRoutedMode
+    ? feedbackContext?.flow ?? 'capture'
+    : activeFlow
 
-  const demoScript = useMemo(
+  const contextLabel = isHomeRoutedMode
+    ? homeContext?.label
+    : isFeedbackRoutedMode
+    ? feedbackContext?.label
+    : getFlowLabel(activeFlow)
+  const subContextLabel = isHomeRoutedMode ? homeContext?.subLabel : isFeedbackRoutedMode ? feedbackContext?.subLabel : undefined
+  const isRoutedContextUnset = (isHomeRoutedMode && !homeContext) || (isFeedbackRoutedMode && !feedbackContext)
+
+  const homeDemoScript = useMemo(
     () => getDemoScriptById(homeFlowConfig.defaultScriptId, homeFlowConfig),
+    [],
+  )
+  const feedbackDemoScript = useMemo(
+    () => getFeedbackDemoScriptById(feedbackFlowConfig.defaultScriptId, feedbackFlowConfig),
     [],
   )
 
@@ -104,8 +131,21 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     return `msg-${idRef.current}`
   }, [])
 
+  const getRuntimeFlow = useCallback(
+    (mode: FlowKey = activeFlowRef.current): FlowKey => {
+      if (mode === 'home') {
+        return homeContextRef.current?.flow ?? 'home'
+      }
+      if (mode === 'feedback') {
+        return feedbackContextRef.current?.flow ?? 'capture'
+      }
+      return mode
+    },
+    [],
+  )
+
   const appendScriptedAssistantTurn = useCallback((text: string, blocks?: ChatBlock[]) => {
-    const routedFlow = activeFlowRef.current === 'home' ? currentContextRef.current?.flow ?? 'home' : activeFlowRef.current
+    const routedFlow = getRuntimeFlow()
 
     const assistantMessage: ChatMessage = {
       id: nextId(),
@@ -117,7 +157,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     }
 
     setMessages((previous) => [...previous, assistantMessage])
-  }, [nextId])
+  }, [getRuntimeFlow, nextId])
 
   const sendPrompt = useCallback(async (rawPrompt: string, options?: { skipEngineResponse?: boolean }) => {
     const input = rawPrompt.trim()
@@ -125,27 +165,54 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       return
     }
 
-    const routeMatch = resolveRouteMatch(input, homeFlowConfig)
-
-    let responseFlow: FlowKey = activeFlow === 'home' ? currentContext?.flow ?? 'home' : activeFlow
+    let responseFlow: FlowKey = getRuntimeFlow(activeFlow)
     let contextNoticeMessage: ChatMessage | null = null
 
-    if (routeMatch) {
-      responseFlow = routeMatch.context.flow
-
-      if (routeMatch.context.id !== currentContext?.id) {
-        setCurrentContext(routeMatch.context)
-        contextNoticeMessage = {
-          id: nextId(),
-          role: 'system',
-          flow: routeMatch.context.flow,
-          timestamp: new Date().toISOString(),
-          text: routeMatch.rule.notice,
+    if (activeFlow === 'feedback') {
+      if (!feedbackContext) {
+        const defaultFeedbackContext =
+          feedbackFlowConfig.contexts.find((context) => context.id === feedbackFlowConfig.defaultContextId) ??
+          feedbackFlowConfig.contexts[0]
+        if (defaultFeedbackContext) {
+          setFeedbackContext(defaultFeedbackContext)
+          responseFlow = defaultFeedbackContext.flow
         }
       }
 
-      if (activeFlow !== 'home') {
-        onFlowChange('home')
+      const feedbackRouteMatch = resolveFeedbackRouteMatch(input, feedbackFlowConfig)
+      if (feedbackRouteMatch) {
+        responseFlow = feedbackRouteMatch.context.flow
+
+        if (feedbackRouteMatch.context.id !== feedbackContext?.id) {
+          setFeedbackContext(feedbackRouteMatch.context)
+          contextNoticeMessage = {
+            id: nextId(),
+            role: 'system',
+            flow: feedbackRouteMatch.context.flow,
+            timestamp: new Date().toISOString(),
+            text: feedbackRouteMatch.rule.notice,
+          }
+        }
+      }
+    } else {
+      const routeMatch = resolveRouteMatch(input, homeFlowConfig)
+      if (routeMatch) {
+        responseFlow = routeMatch.context.flow
+
+        if (routeMatch.context.id !== homeContext?.id) {
+          setHomeContext(routeMatch.context)
+          contextNoticeMessage = {
+            id: nextId(),
+            role: 'system',
+            flow: routeMatch.context.flow,
+            timestamp: new Date().toISOString(),
+            text: routeMatch.rule.notice,
+          }
+        }
+
+        if (activeFlow !== 'home') {
+          onFlowChange('home')
+        }
       }
     }
 
@@ -214,9 +281,11 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     activeFlow,
     askCompanion,
     captureAnswers,
-    currentContext,
     dataset,
+    feedbackContext,
     generateCapturedSummary,
+    getRuntimeFlow,
+    homeContext,
     improvementPlanDraft,
     insights,
     nextId,
@@ -237,7 +306,18 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }, [sendPrompt])
 
   useEffect(() => {
-    if (!homeSimulationEnabled || activeFlow !== 'home' || !demoScript) {
+    const simulationEnabled = activeFlow === 'home'
+      ? homeSimulationEnabled
+      : activeFlow === 'feedback'
+      ? feedbackSimulationEnabled
+      : false
+    const demoScript = activeFlow === 'home'
+      ? homeDemoScript
+      : activeFlow === 'feedback'
+      ? feedbackDemoScript
+      : null
+
+    if (!simulationEnabled || !demoScript) {
       return
     }
 
@@ -263,7 +343,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         }
 
         if (step.type === 'assistant') {
-          const scriptedFlow = activeFlowRef.current === 'home' ? currentContextRef.current?.flow ?? 'home' : activeFlowRef.current
+          const scriptedFlow = getRuntimeFlow()
           setAssistantThinkingLabel(pickThinkingLabel(scriptedFlow))
           setIsAssistantThinking(true)
           await wait(getScriptedAssistantDelayMs(step.text))
@@ -331,13 +411,11 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         resumeSimulationRef.current()
         resumeSimulationRef.current = null
       }
-      if (simulationStateRef.current === 'running' || simulationStateRef.current === 'awaiting-user') {
-        simulationStateRef.current = 'idle'
-      }
+      simulationStateRef.current = 'idle'
       setIsAssistantThinking(false)
       setIsDraftAutoTyping(false)
     }
-  }, [activeFlow, appendScriptedAssistantTurn, demoScript])
+  }, [activeFlow, appendScriptedAssistantTurn, feedbackDemoScript, getRuntimeFlow, homeDemoScript])
 
   const submitDraft = useCallback((rawPrompt: string) => {
     if (isDraftAutoTyping || isAssistantThinking) {
@@ -379,7 +457,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card/75 shadow-sm">
       <div className="border-b border-border/80 bg-background/75 px-4 py-3 md:px-6">
         <div className="flex flex-wrap items-center gap-2">
-          {isHomeContextUnset ? (
+          {isRoutedContextUnset ? (
             <>
               <Badge className="border-dashed border-border text-muted-foreground" variant="outline">
                 Context: Not selected yet
@@ -398,10 +476,14 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
           )}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          {isHomeContextUnset
-            ? 'Share what you want to do, and SAARTHI will auto-select the right context.'
+          {isRoutedContextUnset
+            ? activeFlow === 'feedback'
+              ? 'Share your feedback, and SAARTHI will align the right feedback context.'
+              : 'Share what you want to do, and SAARTHI will auto-select the right context.'
             : activeFlow === 'home'
             ? 'Home routing evaluates every user turn and keeps context sticky until a new match appears.'
+            : activeFlow === 'feedback'
+            ? 'Feedback flow keeps context sticky so the capture conversation remains consistent.'
             : 'Advanced mode is manual, but matching intents still route this shared thread automatically.'}
         </p>
       </div>
@@ -578,6 +660,7 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
 function pickThinkingLabel(flow: FlowKey) {
   const labels: Record<FlowKey, string[]> = {
     home: ['Understanding your intent...', 'Routing to the best context...', 'Preparing the next step...'],
+    feedback: ['Reviewing your feedback...', 'Framing the feedback context...', 'Preparing the next feedback step...'],
     capture: ['Reviewing captured signals...', 'Structuring challenge details...', 'Assembling your summary...'],
     insights: ['Scanning patterns...', 'Comparing root causes...', 'Synthesizing insights...'],
     recommendations: ['Matching practical recommendations...', 'Evaluating options...', 'Building recommendation shortlist...'],

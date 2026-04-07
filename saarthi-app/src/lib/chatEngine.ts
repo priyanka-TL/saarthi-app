@@ -44,6 +44,7 @@ const timelineOptions = ['1 week', '2 weeks', '3 weeks', '1 month', '6 weeks']
 
 const flowLabels: Record<FlowKey, string> = {
   home: 'Home',
+  feedback: 'Capture Feedback',
   capture: 'Capture Challenge',
   insights: 'Insights Engine',
   recommendations: 'Recommendations',
@@ -60,6 +61,9 @@ export function getFlowLabel(flow: FlowKey) {
 export function getComposerPlaceholder(flow: FlowKey) {
   if (flow === 'home') {
     return 'Ask anything. Agentic routing will auto-select the most relevant context.'
+  }
+  if (flow === 'feedback') {
+    return 'Capture feedback details step-by-step, then share what changed.'
   }
   if (flow === 'capture') {
     return 'Try: show summary, set where: ..., set who: ..., set tried: ...'
@@ -104,6 +108,14 @@ export function getChatSuggestions({
       { id: 'cap-1', flow, label: 'Show summary', prompt: 'show summary' },
       { id: 'cap-2', flow, label: 'Set where', prompt: `set where: ${dataset.captureOptions.where[1] ?? dataset.captureOptions.where[0]}` },
       { id: 'cap-3', flow, label: 'Set who', prompt: `set who: ${dataset.captureOptions.who[1] ?? dataset.captureOptions.who[0]}` },
+    ]
+  }
+
+  if (flow === 'feedback') {
+    return [
+      { id: 'fb-1', flow, label: 'Submit feedback', prompt: 'I want to submit a feedback' },
+      { id: 'fb-2', flow, label: 'What changed', prompt: 'We built a toilet facility in the school' },
+      { id: 'fb-3', flow, label: 'Share outcome', prompt: 'Attendance of girl students improved.' },
     ]
   }
 
@@ -171,6 +183,10 @@ export function resolveChatResponse(params: ChatEngineInput): ChatEngineResult {
     return {
       text: 'Home mode routes your input to the right context before generating a response.',
     }
+  }
+
+  if (params.flow === 'feedback') {
+    return resolveCaptureResponse(params)
   }
 
   if (params.flow === 'capture') {

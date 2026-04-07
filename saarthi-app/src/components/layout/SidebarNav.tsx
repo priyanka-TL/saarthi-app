@@ -32,7 +32,7 @@ const capabilityItems: CapabilityItem[] = [
     subActions: [
       { key: 'capture', label: 'Capture Discussions' },
       { key: 'story', label: 'Record Stories' },
-      { key: 'capture', label: 'Capture Feedback' },
+      { key: 'feedback', label: 'Capture Feedback' },
     ],
   },
   {
@@ -126,7 +126,7 @@ export function SidebarNav({ activeFlow, onFlowChange }: SidebarNavProps) {
               <div className="space-y-2.5">
                 {capabilityItems.map((item) => {
                   const Icon = item.icon
-                  const active = item.key === activeFlow
+                  const active = item.key === activeFlow || item.subActions?.some((subAction) => subAction.key === activeFlow)
                   return (
                     <button
                       className={cn(

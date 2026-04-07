@@ -1,4 +1,4 @@
-import homeFlowRaw from "@/config/homeFlow.json?raw";
+import feedbackFlowRaw from "@/config/feedback.json?raw";
 import type {
   DemoScript,
   DemoStep,
@@ -23,64 +23,28 @@ const routedFlows: RoutedFlowKey[] = [
 
 const defaultConfig: HomeFlowConfig = {
   version: 1,
-  defaultContextId: "listening-general",
+  defaultContextId: "feedback-general",
   defaultScriptId: "story-to-saathi-demo",
   contexts: [
     {
-      id: "listening-general",
-      label: "Listening at Scale Context",
+      id: "feedback-general",
+      label: "Feedback Context",
       subLabel: "Capture discussions",
       flow: "capture",
     },
-    {
-      id: "listening-story",
-      label: "Listening at Scale Context",
-      subLabel: "Story capture",
-      flow: "story",
-    },
-    {
-      id: "saathi-support",
-      label: "Saathi",
-      flow: "companion",
-    },
   ],
-  routingRules: [
-    {
-      id: "story-capture-intent",
-      phrases: ["i need to record a story", "record a story", "story capture"],
-      targetContextId: "listening-story",
-      notice:
-        "Context switched to Listening at Scale Context. Sub-context set to Story capture.",
-    },
-    {
-      id: "issue-support-intent",
-      phrases: [
-        "i am facing an issue",
-        "i'm facing an issue",
-        "facing an issue",
-        "issue with",
-      ],
-      targetContextId: "saathi-support",
-      notice: "Context switched to Saathi.",
-    },
-  ],
+  routingRules: [],
   demoScripts: [
     {
       id: "story-to-saathi-demo",
-      title: "Story Capture to Saathi",
+      title: "Feedback Capture Demo",
       steps: [
         {
-          id: "story-intent",
+          id: "feedback-intent",
           type: "user",
-          text: "I need to record a story",
-          typingMsPerChar: 24,
-          postDelayMs: 700,
-        },
-        {
-          id: "issue-intent",
-          type: "user",
-          text: "I am facing an issue with low student engagement",
-          typingMsPerChar: 20,
+          text: "I want to submit a feedback",
+          skipEngineResponse: true,
+          typingMsPerChar: 80,
           postDelayMs: 700,
         },
       ],
@@ -233,7 +197,7 @@ function parseScript(value: unknown): DemoScript | null {
   };
 }
 
-export function parseHomeFlowConfig(raw: string): HomeFlowConfig {
+export function parseFeedbackFlowConfig(raw: string): HomeFlowConfig {
   try {
     const parsed = JSON.parse(raw) as unknown;
 
@@ -254,8 +218,6 @@ export function parseHomeFlowConfig(raw: string): HomeFlowConfig {
           .map((rule) => parseRule(rule, contexts))
           .filter((rule): rule is RoutingRule => Boolean(rule))
       : [];
-    const routingRules =
-      parsedRules.length > 0 ? parsedRules : defaultConfig.routingRules;
 
     const parsedScripts = Array.isArray(parsed.demoScripts)
       ? parsed.demoScripts
@@ -285,7 +247,7 @@ export function parseHomeFlowConfig(raw: string): HomeFlowConfig {
       defaultContextId,
       defaultScriptId,
       contexts,
-      routingRules,
+      routingRules: parsedRules,
       demoScripts,
     };
   } catch {
@@ -293,32 +255,23 @@ export function parseHomeFlowConfig(raw: string): HomeFlowConfig {
   }
 }
 
-export const homeFlowConfig = parseHomeFlowConfig(homeFlowRaw);
+export const feedbackFlowConfig = parseFeedbackFlowConfig(feedbackFlowRaw);
 
-export const homeSimulationEnabled =
+export const feedbackSimulationEnabled =
   String(
-    import.meta.env.VITE_HOME_SIMULATION_ENABLED || "true",
+    import.meta.env.VITE_FEEDBACK_SIMULATION_ENABLED || "true",
   ).toLowerCase() === "true";
 
-export function getDefaultRouteContext(
-  config: HomeFlowConfig = homeFlowConfig,
-) {
-  return (
-    config.contexts.find((context) => context.id === config.defaultContextId) ??
-    config.contexts[0]
-  );
-}
-
-export function getDemoScriptById(
+export function getFeedbackDemoScriptById(
   id: string,
-  config: HomeFlowConfig = homeFlowConfig,
+  config: HomeFlowConfig = feedbackFlowConfig,
 ) {
   return config.demoScripts.find((script) => script.id === id) ?? null;
 }
 
-export function resolveRouteMatch(
+export function resolveFeedbackRouteMatch(
   input: string,
-  config: HomeFlowConfig = homeFlowConfig,
+  config: HomeFlowConfig = feedbackFlowConfig,
 ): ResolvedRouteMatch | null {
   const normalizedInput = normalize(input);
 

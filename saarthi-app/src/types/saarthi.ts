@@ -2,6 +2,7 @@ export type ChallengeKey = 'engagement' | 'attendance' | 'burnout' | 'community'
 
 export type FlowKey =
   | 'home'
+  | 'feedback'
   | 'capture'
   | 'insights'
   | 'recommendations'
