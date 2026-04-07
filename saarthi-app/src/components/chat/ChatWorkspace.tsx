@@ -716,7 +716,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       </div>
 
       <div className="sticky bottom-0 border-t border-border/80 bg-card/95 px-4 py-3 backdrop-blur md:px-6">
-        <form className="flex items-end gap-2" onSubmit={onSubmit}>
+        <form className="flex items-center gap-2" onSubmit={onSubmit}>
           <Textarea
             className="max-h-40 min-h-[52px] resize-none rounded-2xl bg-background transition-[background-color,border-color,box-shadow] motion-transition-md focus-visible:border-primary/40 focus-visible:bg-card"
             disabled={isDraftAutoTyping || isAssistantThinking}
@@ -727,10 +727,10 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
           />
           <Button
             className={cn(
-              'h-11 rounded-xl px-4 transition-[transform,opacity,background-color,box-shadow] motion-transition-fast',
+              'h-[52px] shrink-0 rounded-xl px-4 transition-[opacity,background-color,box-shadow] motion-transition-fast',
               isSendDisabled
-                ? 'scale-[0.98] opacity-75'
-                : 'scale-100 opacity-100 motion-safe:hover:scale-[1.01]',
+                ? 'opacity-75'
+                : 'opacity-100',
             )}
             disabled={isSendDisabled}
             type="submit"
