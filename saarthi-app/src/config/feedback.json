@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "defaultContextId": "feedback-general",
+  "defaultScriptId": "story-to-saathi-demo",
+  "contexts": [
+    {
+      "id": "feedback-general",
+      "label": "Feedback Context",
+      "subLabel": "Capture discussions",
+      "flow": "capture"
+    },
+    {
+      "id": "feedback-story",
+      "label": "Feedback Context",
+      "subLabel": "Story capture",
+      "flow": "story"
+    }
+  ],
+  "routingRules": [
+    {
+      "id": "feedback-listening-intent",
+      "phrases": [
+      ],
+      "targetContextId": "feedback-general",
+      "notice": ""
+    }
+
+  ],
+  "demoScripts": [
+    {
+      "id": "story-to-saathi-demo",
+      "title": "Story Capture to Saathi",
+      "steps": [
+        {
+          "id": "story-intent",
+          "type": "user",
+          "text": "I want to submit a feedback",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 90,
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-intro",
+          "type": "assistant",
+          "text": "Great, I’ll help you capture your feedback. Let’s start with what changed in your school.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-improvement-answer",
+          "type": "user",
+          "text": "We built a toilet facility in the school",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-problem-question",
+          "type": "assistant",
+          "text": "That’s important. What problem were you trying to solve?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-problem-answer",
+          "type": "user",
+          "text": "Many girl students were not coming to school because there was no proper toilet facility. It was a safety and dignity issue",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-action-question",
+          "type": "assistant",
+          "text": "How did you go about solving this?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-action-answer",
+          "type": "user",
+          "text": "We worked with the community, raised funds locally, and constructed the toilets in the school",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-support-question",
+          "type": "assistant",
+          "text": "Who supported you in making this happen?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-support-answer",
+          "type": "user",
+          "text": "Parents and community members supported us, especially in fundraising and coordination",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-challenge-question",
+          "type": "assistant",
+          "text": "What challenges did you face during this process?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-challenge-answer",
+          "type": "user",
+          "text": "The biggest challenge was arranging funds. It took time to convince people and collect enough money",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-outcome-question",
+          "type": "assistant",
+          "text": "What changed after this improvement?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-outcome-answer",
+          "type": "user",
+          "text": "Attendance of girl students improved. They started coming to school regularly",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-closure",
+          "type": "assistant",
+          "text": "This is a meaningful change. You identified a critical issue, mobilized the community, and created a safe environment for students. I’ve captured your story.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-summary",
+          "type": "assistant",
+          "text": "Here is the summary\n\nAn educator identified that many girl students were not attending school due to the lack of proper toilet facilities, which raised concerns around safety and dignity. To address this, the educator collaborated with parents and the local community to raise funds and construct toilets in the school.\n\nDespite challenges in fundraising, consistent efforts and community support made the initiative successful. As a result, attendance among girl students improved significantly, creating a more inclusive and supportive school environment.\n\nThis story highlights how addressing basic infrastructure needs through community collaboration can lead to meaningful improvements in student participation.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-next",
+          "type": "assistant",
+          "text": "Is there anything else you would like help with?",
+          "postDelayMs": 700
+        }
+      ]
+    }
+  ]
+}
