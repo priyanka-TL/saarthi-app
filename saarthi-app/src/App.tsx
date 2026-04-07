@@ -15,7 +15,7 @@ export default function App() {
 }
 
 function SaarthiPrototype() {
-  const [activeFlow, setActiveFlow] = useState<FlowKey>('capture')
+  const [activeFlow, setActiveFlow] = useState<FlowKey>('home')
   const { selectedChallenge } = useSaarthiState()
 
   return (
@@ -25,7 +25,7 @@ function SaarthiPrototype() {
       selectedChallenge={selectedChallenge}
       selectedChallengeLabel={challengeData[selectedChallenge].label}
     >
-      <ChatWorkspace activeFlow={activeFlow} />
+      <ChatWorkspace activeFlow={activeFlow} onFlowChange={setActiveFlow} />
     </AppShell>
   )
 }

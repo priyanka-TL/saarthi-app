@@ -1,6 +1,6 @@
 import type { FlowKey } from '@/types/saarthi'
 
-export type ChatRole = 'user' | 'assistant'
+export type ChatRole = 'user' | 'assistant' | 'system'
 
 export type ChatBlock =
   | {

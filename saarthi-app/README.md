@@ -71,3 +71,7 @@ export default defineConfig([
   },
 ])
 ```
+
+## Prototype Demo Toggle
+
+Set `VITE_HOME_SIMULATION_ENABLED=true` to auto-run the JSON-driven Home chat simulation on load.

@@ -43,6 +43,7 @@ export interface ChatEngineResult {
 const timelineOptions = ['1 week', '2 weeks', '3 weeks', '1 month', '6 weeks']
 
 const flowLabels: Record<FlowKey, string> = {
+  home: 'Home',
   capture: 'Capture Challenge',
   insights: 'Insights Engine',
   recommendations: 'Recommendations',
@@ -57,6 +58,9 @@ export function getFlowLabel(flow: FlowKey) {
 }
 
 export function getComposerPlaceholder(flow: FlowKey) {
+  if (flow === 'home') {
+    return 'Ask anything. Agentic routing will auto-select the most relevant context.'
+  }
   if (flow === 'capture') {
     return 'Try: show summary, set where: ..., set who: ..., set tried: ...'
   }
@@ -87,6 +91,14 @@ export function getChatSuggestions({
   dataset: ChallengeDataset
   selectedRecommendations: string[]
 }): ChatSuggestion[] {
+  if (flow === 'home') {
+    return [
+      { id: 'home-1', flow, label: 'Record a story', prompt: 'I need to record a story' },
+      { id: 'home-2', flow, label: 'Raise an issue', prompt: 'I am facing an issue with low student engagement' },
+      { id: 'home-3', flow, label: 'Show story card', prompt: 'generate story card' },
+    ]
+  }
+
   if (flow === 'capture') {
     return [
       { id: 'cap-1', flow, label: 'Show summary', prompt: 'show summary' },
@@ -155,6 +167,12 @@ export function getChatSuggestions({
 }
 
 export function resolveChatResponse(params: ChatEngineInput): ChatEngineResult {
+  if (params.flow === 'home') {
+    return {
+      text: 'Home mode routes your input to the right context before generating a response.',
+    }
+  }
+
   if (params.flow === 'capture') {
     return resolveCaptureResponse(params)
   }

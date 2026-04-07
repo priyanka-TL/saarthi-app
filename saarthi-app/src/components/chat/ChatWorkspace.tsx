@@ -1,5 +1,5 @@
 import { Bot, SendHorizontal, UserCircle2 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,18 +12,32 @@ import {
   getFlowLabel,
   resolveChatResponse,
 } from '@/lib/chatEngine'
+import {
+  getDefaultRouteContext,
+  getDemoScriptById,
+  homeFlowConfig,
+  homeSimulationEnabled,
+  resolveRouteMatch,
+} from '@/lib/homeFlow'
 import { cn } from '@/lib/utils'
+import type { RouteContext } from '@/types/homeFlow'
 import type { ChatBlock, ChatMessage } from '@/types/chat'
 import type { FlowKey } from '@/types/saarthi'
 
 interface ChatWorkspaceProps {
   activeFlow: FlowKey
+  onFlowChange: (flow: FlowKey) => void
 }
 
-export function ChatWorkspace({ activeFlow }: ChatWorkspaceProps) {
+const defaultTypingMsPerChar = 24
+const defaultPostStepDelayMs = 700
+
+export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) {
   const idRef = useRef(0)
   const endRef = useRef<HTMLDivElement | null>(null)
+  const simulationStateRef = useRef<'idle' | 'running' | 'completed'>('idle')
   const [draft, setDraft] = useState('')
+  const [currentContext, setCurrentContext] = useState<RouteContext>(() => getDefaultRouteContext(homeFlowConfig))
 
   const {
     selectedChallenge,
@@ -44,46 +58,118 @@ export function ChatWorkspace({ activeFlow }: ChatWorkspaceProps) {
 
   const dataset = challengeData[selectedChallenge]
 
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    {
-      id: 'msg-initial',
-      role: 'assistant',
-      flow: activeFlow,
-      timestamp: new Date().toISOString(),
-      text: `Namaste. I am SAARTHI. You are in ${getFlowLabel(activeFlow)} for ${dataset.label.toLowerCase()}. Ask a question or use a suggestion chip to continue.`,
-    },
-  ])
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const initialContext = getDefaultRouteContext(homeFlowConfig)
+    return [
+      {
+        id: 'msg-initial',
+        role: 'assistant',
+        flow: initialContext.flow,
+        timestamp: new Date().toISOString(),
+        text: `Namaste. I am SAARTHI. How can i help you today!!`,
+      },
+    ]
+  })
+
+  const currentContextRef = useRef(currentContext)
+  const activeFlowRef = useRef(activeFlow)
+
+  useEffect(() => {
+    currentContextRef.current = currentContext
+  }, [currentContext])
+
+  useEffect(() => {
+    activeFlowRef.current = activeFlow
+  }, [activeFlow])
+
+  const effectiveFlow = activeFlow === 'home' ? currentContext.flow : activeFlow
+
+  const contextLabel = activeFlow === 'home' ? currentContext.label : getFlowLabel(activeFlow)
+  const subContextLabel = activeFlow === 'home' ? currentContext.subLabel : undefined
 
   const suggestions = useMemo(
-    () => getChatSuggestions({ flow: activeFlow, dataset, selectedRecommendations }),
-    [activeFlow, dataset, selectedRecommendations],
+    () => getChatSuggestions({ flow: effectiveFlow, dataset, selectedRecommendations }),
+    [effectiveFlow, dataset, selectedRecommendations],
+  )
+
+  const demoScript = useMemo(
+    () => getDemoScriptById(homeFlowConfig.defaultScriptId, homeFlowConfig),
+    [],
   )
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  function nextId() {
+  const nextId = useCallback(() => {
     idRef.current += 1
     return `msg-${idRef.current}`
-  }
+  }, [])
 
-  function sendPrompt(rawPrompt: string) {
+  const appendScriptedAssistantTurn = useCallback((text: string, blocks?: ChatBlock[]) => {
+    const routedFlow = activeFlowRef.current === 'home' ? currentContextRef.current.flow : activeFlowRef.current
+
+    const assistantMessage: ChatMessage = {
+      id: nextId(),
+      role: 'assistant',
+      flow: routedFlow,
+      timestamp: new Date().toISOString(),
+      text,
+      blocks,
+    }
+
+    setMessages((previous) => [...previous, assistantMessage])
+  }, [nextId])
+
+  const sendPrompt = useCallback((rawPrompt: string, options?: { skipEngineResponse?: boolean }) => {
     const input = rawPrompt.trim()
     if (!input) {
       return
     }
 
+    const routeMatch = resolveRouteMatch(input, homeFlowConfig)
+
+    let responseFlow: FlowKey = activeFlow === 'home' ? currentContext.flow : activeFlow
+    let contextNoticeMessage: ChatMessage | null = null
+
+    if (routeMatch) {
+      responseFlow = routeMatch.context.flow
+
+      if (routeMatch.context.id !== currentContext.id) {
+        setCurrentContext(routeMatch.context)
+        contextNoticeMessage = {
+          id: nextId(),
+          role: 'system',
+          flow: routeMatch.context.flow,
+          timestamp: new Date().toISOString(),
+          text: routeMatch.rule.notice,
+        }
+      }
+
+      if (activeFlow !== 'home') {
+        onFlowChange('home')
+      }
+    }
+
     const userMessage: ChatMessage = {
       id: nextId(),
       role: 'user',
-      flow: activeFlow,
+      flow: responseFlow,
       timestamp: new Date().toISOString(),
       text: input,
     }
 
+    if (options?.skipEngineResponse) {
+      setMessages((previous) => [
+        ...previous,
+        userMessage,
+        ...(contextNoticeMessage ? [contextNoticeMessage] : []),
+      ])
+      return
+    }
+
     const engineResult = resolveChatResponse({
-      flow: activeFlow,
+      flow: responseFlow,
       input,
       dataset,
       captureAnswers,
@@ -106,14 +192,114 @@ export function ChatWorkspace({ activeFlow }: ChatWorkspaceProps) {
     const assistantMessage: ChatMessage = {
       id: nextId(),
       role: 'assistant',
-      flow: activeFlow,
+      flow: responseFlow,
       timestamp: new Date().toISOString(),
       text: engineResult.text,
       blocks: engineResult.blocks,
     }
 
-    setMessages((previous) => [...previous, userMessage, assistantMessage])
-  }
+    setMessages((previous) => [
+      ...previous,
+      userMessage,
+      ...(contextNoticeMessage ? [contextNoticeMessage] : []),
+      assistantMessage,
+    ])
+  }, [
+    activeFlow,
+    askCompanion,
+    captureAnswers,
+    currentContext,
+    dataset,
+    generateCapturedSummary,
+    improvementPlanDraft,
+    insights,
+    nextId,
+    onFlowChange,
+    programDesignDraft,
+    selectedRecommendations,
+    setCaptureAnswer,
+    setImprovementPlanField,
+    setProgramDraftField,
+    setStoryField,
+    storyDraft,
+    toggleRecommendationSelection,
+  ])
+  const sendPromptRef = useRef(sendPrompt)
+
+  useEffect(() => {
+    sendPromptRef.current = sendPrompt
+  }, [sendPrompt])
+
+  useEffect(() => {
+    if (!homeSimulationEnabled || activeFlow !== 'home' || !demoScript) {
+      return
+    }
+
+    if (simulationStateRef.current !== 'idle') {
+      return
+    }
+
+    const script = demoScript
+    simulationStateRef.current = 'running'
+
+    let cancelled = false
+
+    async function runScript() {
+      await wait(0)
+
+      if (cancelled) {
+        return
+      }
+
+      for (const step of script.steps) {
+        if (cancelled) {
+          return
+        }
+
+        if (step.type === 'assistant') {
+          appendScriptedAssistantTurn(step.text, step.blocks)
+          await wait(step.postDelayMs ?? defaultPostStepDelayMs)
+          continue
+        }
+
+        for (let cursor = 1; cursor <= step.text.length; cursor += 1) {
+          if (cancelled) {
+            return
+          }
+
+          setDraft(step.text.slice(0, cursor))
+          await wait(step.typingMsPerChar ?? defaultTypingMsPerChar)
+        }
+
+        if (cancelled) {
+          return
+        }
+
+        sendPromptRef.current(step.text, { skipEngineResponse: step.skipEngineResponse })
+        setDraft('')
+        await wait(step.postDelayMs ?? defaultPostStepDelayMs)
+      }
+    }
+
+    void runScript()
+      .then(() => {
+        if (!cancelled) {
+          simulationStateRef.current = 'completed'
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setDraft('')
+        }
+      })
+
+    return () => {
+      cancelled = true
+      if (simulationStateRef.current === 'running') {
+        simulationStateRef.current = 'idle'
+      }
+    }
+  }, [activeFlow, appendScriptedAssistantTurn, demoScript])
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -142,12 +328,16 @@ export function ChatWorkspace({ activeFlow }: ChatWorkspaceProps) {
       <div className="border-b border-border/80 bg-background/75 px-4 py-3 md:px-6">
         <div className="flex flex-wrap items-center gap-2">
           <Badge className="border-primary/30 bg-primary/10 text-primary" variant="outline">
-            Context: {getFlowLabel(activeFlow)}
+            Context: {contextLabel}
           </Badge>
+          {subContextLabel ? <Badge variant="outline">Sub-context: {subContextLabel}</Badge> : null}
           <Badge variant="secondary">Challenge: {dataset.label}</Badge>
+          {homeSimulationEnabled ? <Badge variant="secondary">Simulation: Enabled</Badge> : null}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Sidebar switches context silently. This thread is shared across all menus.
+          {activeFlow === 'home'
+            ? 'Home routing evaluates every user turn and keeps context sticky until a new match appears.'
+            : 'Advanced mode is manual, but matching intents still route this shared thread automatically.'}
         </p>
       </div>
 
@@ -162,7 +352,7 @@ export function ChatWorkspace({ activeFlow }: ChatWorkspaceProps) {
         <div className="mb-3 flex flex-wrap gap-2">
           {suggestions.map((suggestion) => (
             <button
-              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/25 hover:bg-muted"
+              className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/25 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
               key={suggestion.id}
               onClick={() => sendPrompt(suggestion.prompt)}
               type="button"
@@ -177,7 +367,7 @@ export function ChatWorkspace({ activeFlow }: ChatWorkspaceProps) {
             className="max-h-40 min-h-[52px] resize-none rounded-2xl bg-background"
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder={getComposerPlaceholder(activeFlow)}
+            placeholder={getComposerPlaceholder(effectiveFlow)}
             value={draft}
           />
           <Button className="h-11 rounded-xl px-4" type="submit">
@@ -192,6 +382,20 @@ export function ChatWorkspace({ activeFlow }: ChatWorkspaceProps) {
 
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user'
+  const isSystem = message.role === 'system'
+
+  if (isSystem) {
+    return (
+      <div className="flex justify-center">
+        <div className="max-w-[900px] rounded-full border border-dashed border-primary/40 bg-primary/5 px-4 py-2 text-center">
+          <p className="text-xs font-medium text-primary">{message.text}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={cn('flex gap-3', isUser ? 'justify-end' : 'justify-start')}>
@@ -293,4 +497,10 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
       })}
     </div>
   )
+}
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(() => resolve(), ms)
+  })
 }

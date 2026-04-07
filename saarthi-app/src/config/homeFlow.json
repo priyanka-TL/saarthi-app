@@ -1,0 +1,282 @@
+{
+  "version": 1,
+  "defaultContextId": "listening-general",
+  "defaultScriptId": "story-to-saathi-demo",
+  "contexts": [
+    {
+      "id": "listening-general",
+      "label": "Listening at Scale Context",
+      "subLabel": "Capture discussions",
+      "flow": "capture"
+    },
+    {
+      "id": "listening-story",
+      "label": "Listening at Scale Context",
+      "subLabel": "Story capture",
+      "flow": "story"
+    },
+    {
+      "id": "saathi-support",
+      "label": "Saathi",
+      "flow": "companion"
+    }
+  ],
+  "routingRules": [
+    {
+      "id": "story-capture-intent",
+      "phrases": [
+        "i need to record a story",
+        "record a story",
+        "capture a story",
+        "story capture",
+        "document a story"
+      ],
+      "targetContextId": "listening-story",
+      "notice": "Context switched to Listening at Scale Context. Sub-context set to Story capture."
+    },
+    {
+      "id": "issue-support-intent",
+      "phrases": [
+        "i am facing an issue",
+        "i'm facing an issue",
+        "facing an issue",
+        "need help with",
+        "issue with"
+      ],
+      "targetContextId": "saathi-support",
+      "notice": "Context switched to Saathi."
+    }
+  ],
+  "demoScripts": [
+    {
+      "id": "story-to-saathi-demo",
+      "title": "Story Capture to Saathi",
+      "steps": [
+        {
+          "id": "story-intent",
+          "type": "user",
+          "text": "I need to record a story",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 24,
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-intro",
+          "type": "assistant",
+          "text": "Hi! I'm MItra. I'll help capture your improvement story. What's your name?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-name",
+          "type": "user",
+          "text": "Akash",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-role",
+          "type": "assistant",
+          "text": "Nice to meet you, Akash. What do you do in education?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-role-answer",
+          "type": "user",
+          "text": "Teacher at BPS Gokul School, North Bangalore",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 24,
+          "postDelayMs": 600
+        },
+        {
+          "type": "assistant",
+          "id": "mitra-issue-question",
+          "text": "What issue did you notice in your school?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-issue-answer",
+          "type": "user",
+          "text": "Students had to travel long distances, so many stayed at home",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-cause-question",
+          "type": "assistant",
+          "text": "What caused this problem?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-cause-answer",
+          "type": "user",
+          "text": "No transportation facilities",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-action-question",
+          "type": "assistant",
+          "text": "What did you do to solve it?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-action-answer",
+          "type": "user",
+          "text": "Worked with parents and arranged bicycles for students",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-challenge-question",
+          "type": "assistant",
+          "text": "What challenges did you face?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-challenge-answer",
+          "type": "user",
+          "text": "Parents were hesitant and funds were limited",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-overcome-question",
+          "type": "assistant",
+          "text": "How did you overcome that?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-overcome-answer",
+          "type": "user",
+          "text": "Continuous discussions with parents and community support for funding",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-support-question",
+          "type": "assistant",
+          "text": "Who supported you in this effort?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-support-answer",
+          "type": "user",
+          "text": "Parents and community leaders",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-duration-question",
+          "type": "assistant",
+          "text": "How long did this take?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-duration-answer",
+          "type": "user",
+          "text": "3 months",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-outcome-question",
+          "type": "assistant",
+          "text": "What changed after this?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-outcome-answer",
+          "type": "user",
+          "text": "Student attendance started increasing",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-summary",
+          "type": "assistant",
+          "text": "Thanks, Akash. I've captured your story.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "issue-intent",
+          "type": "user",
+          "text": "I am facing an issue with Grade 1 enrollment drop",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-clarify-scope",
+          "type": "assistant",
+          "text": "I understand your concern. Is the drop in enrollment across the school or specific to a grade?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-scope-answer",
+          "type": "user",
+          "text": "Mostly Grade 1. Parents are choosing a nearby private school.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 650
+        },
+        {
+          "id": "saathi-outreach-question",
+          "type": "assistant",
+          "text": "Have you recently spoken to parents or done any outreach to understand their reasons?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-outreach-answer",
+          "type": "user",
+          "text": "Yes, I spoke to some parents. They said:\n\nPrivate school has better English teaching\nThey feel our school lacks focus on studies\nThey think facilities are better in private schools",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 18,
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-issue-summary",
+          "type": "assistant",
+          "text": "This is clear. The core issue is low awareness and trust in your school's quality.\nSo the goal is to increase parent awareness and confidence. Does that sound right?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-confirm-goal",
+          "type": "user",
+          "text": "Yes, that's right.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 650
+        },
+        {
+          "id": "saathi-goal-options",
+          "type": "assistant",
+          "text": "Great. Here are a few focused goal options. Which one do you want to proceed with?\n\nIncrease Grade 1 enrollment by 15% in 30 days\nContact 80% of nearby parents in 3 weeks\nConduct open-house events to drive admissions",
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-goal-choice",
+          "type": "user",
+          "text": "Option 1",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 20,
+          "postDelayMs": 650
+        },
+        {
+          "id": "saathi-plan",
+          "type": "assistant",
+          "text": "Excellent choice. Here's your action plan:\nObjective: Increase Grade 1 enrollment by 15% in 30 days\nKey Actions:\n\nIdentify non-enrolled children nearby\nVisit homes and talk to parents\nOrganize a school visit/open day\nCommunicate benefits (free meals, uniforms, books)\nEngage local leaders for awareness\nFollow up and support admissions\nSuccess Indicators:\n\nNumber of parents contacted\nNumber of admissions completed",
+          "postDelayMs": 850
+        }
+      ]
+    }
+  ]
+}
