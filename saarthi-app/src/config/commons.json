@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "defaultContextId": "commons-general",
+  "defaultScriptId": "story-to-saathi-demo",
+  "contexts": [
+    {
+      "id": "commons-general",
+      "label": "commons Context",
+      "subLabel": "Capture discussions",
+      "flow": "capture"
+    },
+    {
+      "id": "commons-story",
+      "label": "commons Context",
+      "subLabel": "Story capture",
+      "flow": "story"
+    }
+  ],
+  "routingRules": [
+    {
+      "id": "commons-intent",
+      "phrases": [
+      ],
+      "targetContextId": "commons-general",
+      "notice": ""
+    }
+
+  ],
+  "demoScripts": [
+    {
+      "id": "story-to-saathi-demo",
+      "title": "Story Capture to Saathi",
+      "steps": [
+        {
+          "id": "story-intent",
+          "type": "user",
+          "text": "I want to know more about FLN & TLM use",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 90,
+          "postDelayMs": 700
+        },
+        {
+          "id": "commons-intro",
+          "type": "assistant",
+          "text": "Sure. You can know more about \"Teachers Planning Sheet for FLN & TLM Use\". (https://commons.shikshagraha.org/603)",
+          "postDelayMs": 700
+        }
+      ]
+    }
+  ]
+}
