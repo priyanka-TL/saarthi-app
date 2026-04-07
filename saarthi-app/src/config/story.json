@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "defaultContextId": "listening-general",
+  "defaultScriptId": "story-to-saathi-demo",
+  "contexts": [
+    {
+      "id": "listening-general",
+      "label": "Listening at Scale Context",
+      "subLabel": "Capture discussions",
+      "flow": "capture"
+    },
+    {
+      "id": "listening-story",
+      "label": "Listening at Scale Context",
+      "subLabel": "Story capture",
+      "flow": "story"
+    }
+  ],
+  "routingRules": [
+    {
+      "id": "story-capture-intent",
+      "phrases": [],
+      "targetContextId": "listening-story",
+      "notice": "Context switched to Listening at Scale Context. Sub-context set to Story capture."
+    }
+  ],
+  "demoScripts": [
+    {
+      "id": "story-to-saathi-demo",
+      "title": "Story Capture to Saathi",
+      "steps": [
+        {
+          "id": "story-intent",
+          "type": "user",
+          "text": "I want to record a micro-improvement story",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 90,
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-intro",
+          "type": "assistant",
+          "text": "Sure, Akash. I'll help capture your improvement story.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-issue-question",
+          "type": "assistant",
+          "text": "What issue did you face in your school – BPS Gokul School, North Bangalore?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-issue-answer",
+          "type": "user",
+          "text": "There was a drop in student attendance",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-cause-question",
+          "type": "assistant",
+          "text": "What caused this issue?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-cause-answer",
+          "type": "user",
+          "text": "No convenient transportation facilities for the students. The earlier public bus service route was changed and hence was not convenient for students to come to school",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-action-question",
+          "type": "assistant",
+          "text": "How did you solve this issue?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-action-answer",
+          "type": "user",
+          "text": "We did multiple things. Firstly, with the support of the community and the local administration, we were able to raise the concern with the transport department and got the bus route restored to cover the school. Also managed to organise community funding and distributed bicycles to students",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-challenge-question",
+          "type": "assistant",
+          "text": "Would you like to share the challenges you faced during this process and how you overcame the same?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-challenge-answer",
+          "type": "user",
+          "text": "It was not easy to convince the transport department, however with the support of the community and local administration we were able to prevail on them to reroute the buses",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-support-question",
+          "type": "assistant",
+          "text": "Who supported you in this effort?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-support-answer",
+          "type": "user",
+          "text": "Parents, community leaders and local administration",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-duration-question",
+          "type": "assistant",
+          "text": "How long did this take?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-duration-answer",
+          "type": "user",
+          "text": "3 months",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-outcome-question",
+          "type": "assistant",
+          "text": "What changed after this?",
+          "postDelayMs": 650
+        },
+        {
+          "id": "mitra-outcome-answer",
+          "type": "user",
+          "text": "We saw considerable increase in the attendance",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "mitra-summary-1",
+          "type": "assistant",
+          "text": "This is so impressive, Akash. Thanks for sharing. I have captured and created a story for you.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-summary-2",
+          "type": "assistant",
+          "text": "Here is the summary\n\nAkash, an educator from BPS Gokul School in North Bangalore, identified a significant issue in his school—a noticeable drop in student attendance. Upon examining the root cause, he found that the lack of convenient transportation was a major barrier. A change in the public bus route had made it difficult for many students to commute to school regularly.\n\nDetermined to address this challenge, Akash took a collaborative approach. With the support of parents, community leaders, and the local administration, he raised the issue with the transport department and advocated for restoring the bus route. Despite initial resistance and difficulty in convincing the authorities, persistent efforts and collective support helped in successfully rerouting the buses to better serve the school. In parallel, the community also came together to organize funding and provide bicycles to students, ensuring alternative means of transportation.\n\nThis initiative, carried out over a period of three months, led to a considerable improvement in student attendance. Akash’s efforts highlight the impact of community collaboration and persistence in solving systemic challenges. His story demonstrates how proactive problem-solving and collective action can effectively remove barriers to education and create meaningful change.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-summary-3",
+          "type": "assistant",
+          "text": "Is there anything else I can help you with today?",
+          "postDelayMs": 700
+        }
+      ]
+    }
+  ]
+}

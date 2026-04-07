@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "defaultContextId": "listening-general",
+  "defaultScriptId": "story-to-saathi-demo",
+  "contexts": [
+    {
+      "id": "saathi-support",
+      "label": "Saathi",
+      "flow": "companion"
+    }
+  ],
+  "routingRules": [
+    {
+      "id": "issue-support-intent",
+      "phrases": [
+      ],
+      "targetContextId": "saathi-support",
+      "notice": "Context switched to Saathi."
+    }
+  ],
+  "demoScripts": [
+    {
+      "id": "story-to-saathi-demo",
+      "title": "Story Capture to Saathi",
+      "steps": [
+        {
+          "id": "mitra-summary-3",
+          "type": "assistant",
+          "text": "How can I help you with today?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "issue-intent",
+          "type": "user",
+          "text": "I need some help, We are seeing a drop in enrollment.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-clarify-scope",
+          "type": "assistant",
+          "text": "I understand your concern. Is the drop in enrollment across the different grades or specific to a grade?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-scope-answer",
+          "type": "user",
+          "text": "Mostly Grade 1. Parents are choosing a nearby private school.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 650
+        },
+        {
+          "id": "saathi-outreach-question",
+          "type": "assistant",
+          "text": "Have you recently spoken to parents or done any outreach to understand their reasons?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-outreach-answer",
+          "type": "user",
+          "text": "Yes, I spoke to some parents. They said:\n\nPrivate school has better English teaching\nThey feel our school lacks focus on studies\nThey think facilities are better in private schools",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-issue-summary",
+          "type": "assistant",
+          "text": "This is clear. The core issue is low awareness and trust in your school's quality.\nSo the goal is to increase parent awareness and confidence. Does that sound right?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-confirm-goal",
+          "type": "user",
+          "text": "Yes, that's right.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 650
+        },
+        {
+          "id": "saathi-goal-options",
+          "type": "assistant",
+          "text": "Great. There are a couple of activities you can do to increase awareness. Which one do you want to proceed with?\n\nContact 80% of nearby parents in 3 weeks and talk to them about the school facilities\nConduct open-house events to drive awareness of the school",
+          "postDelayMs": 700
+        },
+        {
+          "id": "saathi-goal-choice",
+          "type": "user",
+          "text": "Option 1",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 650
+        },
+        {
+          "id": "saathi-plan",
+          "type": "assistant",
+          "text": "Excellent choice. Here's your action plan:\nKey Actions:\n\nIdentify non-enrolled children nearby\nVisit homes and talk to parents\nOrganize a school visit/open day\nCommunicate benefits (free meals, uniforms, books)\nEngage local leaders for awareness\nFollow up and support admissions\nSuccess Indicators:\n\nNumber of parents contacted\nNumber of admissions completed",
+          "postDelayMs": 850
+        },
+        {
+          "id": "mitra-summary-3",
+          "type": "assistant",
+          "text": "Is there anything else I can help you with today?",
+          "postDelayMs": 700
+        }
+      ]
+    }
+  ]
+}
