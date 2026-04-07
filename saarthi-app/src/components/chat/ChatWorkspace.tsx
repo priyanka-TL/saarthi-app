@@ -1,5 +1,5 @@
 import { Bot, SendHorizontal, UserCircle2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -752,7 +752,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     return (
       <div className="flex justify-center motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]">
         <div className="max-w-[900px] rounded-full border border-dashed border-primary/40 bg-primary/5 px-4 py-2 text-center">
-          <p className="text-xs font-medium text-primary">{message.text}</p>
+          <p className="text-xs font-medium text-primary">{renderMessageText(message.text)}</p>
           <p className="mt-1 text-[11px] text-muted-foreground">
             {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
@@ -785,7 +785,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         )}
       >
         <p className={cn('whitespace-pre-wrap text-sm leading-relaxed', isUser ? 'text-primary-foreground' : 'text-foreground')}>
-          {message.text}
+          {renderMessageText(message.text)}
         </p>
 
         {message.blocks && message.blocks.length > 0 ? <AssistantBlocks blocks={message.blocks} /> : null}
@@ -802,6 +802,50 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       ) : null}
     </div>
   )
+}
+
+function renderMessageText(text: string) {
+  const urlRegex = /https?:\/\/[^\s]+/g
+  const parts: ReactNode[] = []
+  let cursor = 0
+  let linkIndex = 0
+
+  for (const match of text.matchAll(urlRegex)) {
+    const matchedText = match[0]
+    const start = match.index ?? 0
+
+    if (start > cursor) {
+      parts.push(text.slice(cursor, start))
+    }
+
+    const href = matchedText.replace(/[),.;!?]+$/g, '')
+    const trailing = matchedText.slice(href.length)
+
+    parts.push(
+      <a
+        className="font-medium text-primary underline underline-offset-2 hover:text-primary/80"
+        href={href}
+        key={`msg-link-${linkIndex}`}
+        rel="noreferrer noopener"
+        target="_blank"
+      >
+        {href}
+      </a>,
+    )
+
+    if (trailing) {
+      parts.push(trailing)
+    }
+
+    cursor = start + matchedText.length
+    linkIndex += 1
+  }
+
+  if (cursor < text.length) {
+    parts.push(text.slice(cursor))
+  }
+
+  return parts.length > 0 ? parts : text
 }
 
 function AssistantThinkingBubble({ label }: { label: string }) {
