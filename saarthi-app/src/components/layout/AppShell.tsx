@@ -85,8 +85,8 @@ export function AppShell({
 }
 
 function BrandBlock({
-  selectedChallenge,
-  selectedChallengeLabel,
+  selectedChallenge: _selectedChallenge,
+  selectedChallengeLabel: _selectedChallengeLabel,
 }: {
   selectedChallenge: ChallengeKey;
   selectedChallengeLabel: string;

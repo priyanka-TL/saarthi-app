@@ -37,6 +37,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const awaitingScriptedUserStepRef = useRef<DemoUserStep | null>(null)
   const resumeSimulationRef = useRef<(() => void) | null>(null)
   const [draft, setDraft] = useState('')
+  const [isDraftAutoTyping, setIsDraftAutoTyping] = useState(false)
+  const [isAssistantThinking, setIsAssistantThinking] = useState(false)
+  const [assistantThinkingLabel, setAssistantThinkingLabel] = useState('Reviewing your input...')
   const [currentContext, setCurrentContext] = useState<RouteContext | null>(null)
 
   const {
@@ -94,7 +97,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [isAssistantThinking, messages])
 
   const nextId = useCallback(() => {
     idRef.current += 1
@@ -116,7 +119,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     setMessages((previous) => [...previous, assistantMessage])
   }, [nextId])
 
-  const sendPrompt = useCallback((rawPrompt: string, options?: { skipEngineResponse?: boolean }) => {
+  const sendPrompt = useCallback(async (rawPrompt: string, options?: { skipEngineResponse?: boolean }) => {
     const input = rawPrompt.trim()
     if (!input) {
       return
@@ -197,8 +200,16 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       ...previous,
       userMessage,
       ...(contextNoticeMessage ? [contextNoticeMessage] : []),
-      assistantMessage,
     ])
+
+    setAssistantThinkingLabel(pickThinkingLabel(responseFlow))
+    setIsAssistantThinking(true)
+    try {
+      await wait(getAssistantResponseDelayMs(engineResult.text, Boolean(engineResult.blocks?.length)))
+      setMessages((previous) => [...previous, assistantMessage])
+    } finally {
+      setIsAssistantThinking(false)
+    }
   }, [
     activeFlow,
     askCompanion,
@@ -252,11 +263,21 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         }
 
         if (step.type === 'assistant') {
+          const scriptedFlow = activeFlowRef.current === 'home' ? currentContextRef.current?.flow ?? 'home' : activeFlowRef.current
+          setAssistantThinkingLabel(pickThinkingLabel(scriptedFlow))
+          setIsAssistantThinking(true)
+          await wait(getScriptedAssistantDelayMs(step.text))
+          if (cancelled) {
+            setIsAssistantThinking(false)
+            return
+          }
           appendScriptedAssistantTurn(step.text, step.blocks)
+          setIsAssistantThinking(false)
           await wait(step.postDelayMs ?? defaultPostStepDelayMs)
           continue
         }
 
+        setIsDraftAutoTyping(true)
         for (let cursor = 1; cursor <= step.text.length; cursor += 1) {
           if (cancelled) {
             return
@@ -270,6 +291,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
           return
         }
 
+        setIsDraftAutoTyping(false)
         simulationStateRef.current = 'awaiting-user'
         awaitingScriptedUserStepRef.current = step
 
@@ -298,6 +320,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         if (!cancelled) {
           setDraft('')
         }
+        setIsAssistantThinking(false)
+        setIsDraftAutoTyping(false)
       })
 
     return () => {
@@ -310,10 +334,16 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       if (simulationStateRef.current === 'running' || simulationStateRef.current === 'awaiting-user') {
         simulationStateRef.current = 'idle'
       }
+      setIsAssistantThinking(false)
+      setIsDraftAutoTyping(false)
     }
   }, [activeFlow, appendScriptedAssistantTurn, demoScript])
 
   const submitDraft = useCallback((rawPrompt: string) => {
+    if (isDraftAutoTyping || isAssistantThinking) {
+      return
+    }
+
     const input = rawPrompt.trim()
     if (!input) {
       return
@@ -321,7 +351,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
 
     const awaitingStep = awaitingScriptedUserStepRef.current
     if (awaitingStep && simulationStateRef.current === 'awaiting-user') {
-      sendPrompt(input, { skipEngineResponse: awaitingStep.skipEngineResponse })
+      void sendPrompt(input, { skipEngineResponse: awaitingStep.skipEngineResponse })
       setDraft('')
       const resume = resumeSimulationRef.current
       resumeSimulationRef.current = null
@@ -329,9 +359,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       return
     }
 
-    sendPrompt(input)
+    void sendPrompt(input)
     setDraft('')
-  }, [sendPrompt])
+  }, [isAssistantThinking, isDraftAutoTyping, sendPrompt])
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -380,6 +410,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
+        {isAssistantThinking ? <AssistantThinkingBubble label={assistantThinkingLabel} /> : null}
         <div ref={endRef} />
       </div>
 
@@ -387,12 +418,17 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         <form className="flex items-end gap-2" onSubmit={onSubmit}>
           <Textarea
             className="max-h-40 min-h-[52px] resize-none rounded-2xl bg-background"
+            disabled={isDraftAutoTyping || isAssistantThinking}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={onKeyDown}
             placeholder={getComposerPlaceholder(effectiveFlow)}
             value={draft}
           />
-          <Button className="h-11 rounded-xl px-4" type="submit">
+          <Button
+            className="h-11 rounded-xl px-4"
+            disabled={isDraftAutoTyping || isAssistantThinking || !draft.trim()}
+            type="submit"
+          >
             <SendHorizontal className="mr-1 h-4 w-4" />
             Send
           </Button>
@@ -451,6 +487,24 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           <UserCircle2 className="h-5 w-5" />
         </div>
       ) : null}
+    </div>
+  )
+}
+
+function AssistantThinkingBubble({ label }: { label: string }) {
+  return (
+    <div className="flex justify-start gap-3">
+      <div className="mt-1 shrink-0 text-primary">
+        <Bot className="h-5 w-5" />
+      </div>
+      <div className="max-w-[900px] rounded-2xl border border-border bg-background px-4 py-3 text-foreground">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70 [animation-delay:0ms]" />
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70 [animation-delay:150ms]" />
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary/70 [animation-delay:300ms]" />
+        </div>
+      </div>
     </div>
   )
 }
@@ -519,6 +573,37 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
       })}
     </div>
   )
+}
+
+function pickThinkingLabel(flow: FlowKey) {
+  const labels: Record<FlowKey, string[]> = {
+    home: ['Understanding your intent...', 'Routing to the best context...', 'Preparing the next step...'],
+    capture: ['Reviewing captured signals...', 'Structuring challenge details...', 'Assembling your summary...'],
+    insights: ['Scanning patterns...', 'Comparing root causes...', 'Synthesizing insights...'],
+    recommendations: ['Matching practical recommendations...', 'Evaluating options...', 'Building recommendation shortlist...'],
+    improvement: ['Drafting a micro-improvement plan...', 'Aligning action and timeline...', 'Preparing implementation steps...'],
+    story: ['Shaping your story arc...', 'Polishing impact narrative...', 'Preparing story card output...'],
+    companion: ['Reviewing similar scenarios...', 'Thinking through support options...', 'Preparing contextual guidance...'],
+    program: ['Aligning program design elements...', 'Checking objective-indicator fit...', 'Preparing program snapshot...'],
+  }
+
+  const flowLabels = labels[flow]
+  return flowLabels[Math.floor(Math.random() * flowLabels.length)]
+}
+
+function getAssistantResponseDelayMs(text: string, hasBlocks: boolean) {
+  const base = 450
+  const textContribution = Math.min(900, text.length * 10)
+  const blockContribution = hasBlocks ? 180 : 0
+  const jitter = Math.floor(Math.random() * 220)
+  return Math.min(2200, base + textContribution + blockContribution + jitter)
+}
+
+function getScriptedAssistantDelayMs(text: string) {
+  const base = 380
+  const textContribution = Math.min(780, text.length * 8)
+  const jitter = Math.floor(Math.random() * 180)
+  return Math.min(1700, base + textContribution + jitter)
 }
 
 function wait(ms: number) {

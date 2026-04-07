@@ -25,11 +25,12 @@
     {
       "id": "story-capture-intent",
       "phrases": [
-        "i need to record a story",
+        "I want to record a story",
         "record a story",
         "capture a story",
         "story capture",
-        "document a story"
+        "document a story",
+        "I want to record a micro-improvement story"
       ],
       "targetContextId": "listening-story",
       "notice": "Context switched to Listening at Scale Context. Sub-context set to Story capture."
@@ -41,7 +42,7 @@
         "i'm facing an issue",
         "facing an issue",
         "need help with",
-        "issue with"
+        "We are seeing a drop in enrollment."
       ],
       "targetContextId": "saathi-support",
       "notice": "Context switched to Saathi."
@@ -55,7 +56,7 @@
         {
           "id": "story-intent",
           "type": "user",
-          "text": "I need to record a story",
+          "text": "I want to record a micro-improvement story",
           "skipEngineResponse": true,
           "typingMsPerChar": 90,
           "postDelayMs": 700
@@ -63,20 +64,19 @@
         {
           "id": "mitra-intro",
           "type": "assistant",
-          "text": "Sure Akash, I'll help capture your improvement story.",
+          "text": "Sure, Akash. I'll help capture your improvement story.",
           "postDelayMs": 700
         },
-
         {
-          "type": "assistant",
           "id": "mitra-issue-question",
-          "text": "What issue did you notice in BPS Gokul School, North Bangalore?",
+          "type": "assistant",
+          "text": "What issue did you face in your school – BPS Gokul School, North Bangalore?",
           "postDelayMs": 650
         },
         {
           "id": "mitra-issue-answer",
           "type": "user",
-          "text": "Students had to travel long distances, so many stayed at home",
+          "text": "There was a drop in student attendance",
           "skipEngineResponse": true,
           "typingMsPerChar": 30,
           "postDelayMs": 600
@@ -84,13 +84,13 @@
         {
           "id": "mitra-cause-question",
           "type": "assistant",
-          "text": "What caused this problem?",
+          "text": "What caused this issue?",
           "postDelayMs": 650
         },
         {
           "id": "mitra-cause-answer",
           "type": "user",
-          "text": "No transportation facilities",
+          "text": "No convenient transportation facilities for the students. The earlier public bus service route was changed and hence was not convenient for students to come to school",
           "skipEngineResponse": true,
           "typingMsPerChar": 30,
           "postDelayMs": 600
@@ -98,13 +98,13 @@
         {
           "id": "mitra-action-question",
           "type": "assistant",
-          "text": "What did you do to solve it?",
+          "text": "How did you solve this issue?",
           "postDelayMs": 650
         },
         {
           "id": "mitra-action-answer",
           "type": "user",
-          "text": "Worked with parents and arranged bicycles for students",
+          "text": "We did multiple things. Firstly, with the support of the community and the local administration, we were able to raise the concern with the transport department and got the bus route restored to cover the school. Also managed to organise community funding and distributed bicycles to students",
           "skipEngineResponse": true,
           "typingMsPerChar": 30,
           "postDelayMs": 600
@@ -112,27 +112,13 @@
         {
           "id": "mitra-challenge-question",
           "type": "assistant",
-          "text": "What challenges did you face?",
+          "text": "Would you like to share the challenges you faced during this process and how you overcame the same?",
           "postDelayMs": 650
         },
         {
           "id": "mitra-challenge-answer",
           "type": "user",
-          "text": "Parents were hesitant and funds were limited",
-          "skipEngineResponse": true,
-          "typingMsPerChar": 30,
-          "postDelayMs": 600
-        },
-        {
-          "id": "mitra-overcome-question",
-          "type": "assistant",
-          "text": "How did you overcome that?",
-          "postDelayMs": 650
-        },
-        {
-          "id": "mitra-overcome-answer",
-          "type": "user",
-          "text": "Continuous discussions with parents and community support for funding",
+          "text": "It was not easy to convince the transport department, however with the support of the community and local administration we were able to prevail on them to reroute the buses",
           "skipEngineResponse": true,
           "typingMsPerChar": 30,
           "postDelayMs": 600
@@ -146,7 +132,7 @@
         {
           "id": "mitra-support-answer",
           "type": "user",
-          "text": "Parents and community leaders",
+          "text": "Parents, community leaders and local administration",
           "skipEngineResponse": true,
           "typingMsPerChar": 30,
           "postDelayMs": 600
@@ -174,21 +160,33 @@
         {
           "id": "mitra-outcome-answer",
           "type": "user",
-          "text": "Student attendance started increasing",
+          "text": "We saw considerable increase in the attendance",
           "skipEngineResponse": true,
           "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
-          "id": "mitra-summary",
+          "id": "mitra-summary-1",
           "type": "assistant",
-          "text": "Thanks, Akash. I've captured your story.",
+          "text": "This is so impressive, Akash. Thanks for sharing. I have captured and created a story for you.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-summary-2",
+          "type": "assistant",
+          "text": "Here is the summary\n\nAkash, an educator from BPS Gokul School in North Bangalore, identified a significant issue in his school—a noticeable drop in student attendance. Upon examining the root cause, he found that the lack of convenient transportation was a major barrier. A change in the public bus route had made it difficult for many students to commute to school regularly.\n\nDetermined to address this challenge, Akash took a collaborative approach. With the support of parents, community leaders, and the local administration, he raised the issue with the transport department and advocated for restoring the bus route. Despite initial resistance and difficulty in convincing the authorities, persistent efforts and collective support helped in successfully rerouting the buses to better serve the school. In parallel, the community also came together to organize funding and provide bicycles to students, ensuring alternative means of transportation.\n\nThis initiative, carried out over a period of three months, led to a considerable improvement in student attendance. Akash’s efforts highlight the impact of community collaboration and persistence in solving systemic challenges. His story demonstrates how proactive problem-solving and collective action can effectively remove barriers to education and create meaningful change.",
+          "postDelayMs": 700
+        },
+        {
+          "id": "mitra-summary-3",
+          "type": "assistant",
+          "text": "Is there anything else I can help you with today?",
           "postDelayMs": 700
         },
         {
           "id": "issue-intent",
           "type": "user",
-          "text": "I am facing an issue with Grade 1 enrollment drop",
+          "text": "We are seeing a drop in enrollment.",
           "skipEngineResponse": true,
           "typingMsPerChar": 30,
           "postDelayMs": 700
@@ -196,7 +194,7 @@
         {
           "id": "saathi-clarify-scope",
           "type": "assistant",
-          "text": "I understand your concern. Is the drop in enrollment across the school or specific to a grade?",
+          "text": "I understand your concern. Is the drop in enrollment across the different grades or specific to a grade?",
           "postDelayMs": 700
         },
         {
@@ -238,7 +236,7 @@
         {
           "id": "saathi-goal-options",
           "type": "assistant",
-          "text": "Great. Here are a few focused goal options. Which one do you want to proceed with?\n\nIncrease Grade 1 enrollment by 15% in 30 days\nContact 80% of nearby parents in 3 weeks\nConduct open-house events to drive admissions",
+          "text": "Great. There are a couple of activities you can do to increase awareness. Which one do you want to proceed with?\n\nContact 80% of nearby parents in 3 weeks and talk to them about the school facilities\nConduct open-house events to drive awareness of the school",
           "postDelayMs": 700
         },
         {
@@ -252,7 +250,7 @@
         {
           "id": "saathi-plan",
           "type": "assistant",
-          "text": "Excellent choice. Here's your action plan:\nObjective: Increase Grade 1 enrollment by 15% in 30 days\nKey Actions:\n\nIdentify non-enrolled children nearby\nVisit homes and talk to parents\nOrganize a school visit/open day\nCommunicate benefits (free meals, uniforms, books)\nEngage local leaders for awareness\nFollow up and support admissions\nSuccess Indicators:\n\nNumber of parents contacted\nNumber of admissions completed",
+          "text": "Excellent choice. Here's your action plan:\nKey Actions:\n\nIdentify non-enrolled children nearby\nVisit homes and talk to parents\nOrganize a school visit/open day\nCommunicate benefits (free meals, uniforms, books)\nEngage local leaders for awareness\nFollow up and support admissions\nSuccess Indicators:\n\nNumber of parents contacted\nNumber of admissions completed",
           "postDelayMs": 850
         }
       ]
