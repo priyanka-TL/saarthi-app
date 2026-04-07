@@ -6,23 +6,23 @@
 
 @layer base {
   :root {
-    --background: 39 71% 98%;
-    --foreground: 30 20% 18%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 20% 18%;
+    --card-foreground: 222 47% 11%;
 
-    --primary: 26 76% 46%;
-    --primary-foreground: 38 80% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 42 54% 92%;
-    --secondary-foreground: 30 24% 26%;
+    --secondary: 214 32% 92%;
+    --secondary-foreground: 222 30% 22%;
 
-    --muted: 42 28% 94%;
-    --muted-foreground: 29 14% 43%;
+    --muted: 214 24% 94%;
+    --muted-foreground: 218 14% 43%;
 
-    --border: 30 24% 84%;
-    --ring: 26 76% 46%;
+    --border: 214 24% 86%;
+    --ring: 217 91% 60%;
 
     --radius: 1rem;
   }
@@ -36,9 +36,9 @@
     font-family: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
     min-height: 100vh;
     background-image:
-      radial-gradient(circle at 10% 15%, rgba(246, 198, 146, 0.22), transparent 32%),
-      radial-gradient(circle at 92% 2%, rgba(167, 205, 233, 0.28), transparent 28%),
-      linear-gradient(145deg, rgba(255, 252, 244, 1), rgba(249, 245, 237, 1));
+      radial-gradient(circle at 12% 16%, hsl(var(--primary) / 0.14), transparent 34%),
+      radial-gradient(circle at 88% 0%, hsl(188 84% 43% / 0.12), transparent 28%),
+      linear-gradient(145deg, hsl(var(--background)), hsl(214 100% 97%));
   }
 
   h1,

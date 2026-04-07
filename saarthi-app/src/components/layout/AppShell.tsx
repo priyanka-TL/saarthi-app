@@ -21,9 +21,9 @@ export function AppShell({
   selectedChallenge,
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8f4eb] via-[#fefdfa] to-[#f7fafc] text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/45 text-foreground">
       <div className="flex min-h-screen w-full flex-col lg:flex-row">
-        <aside className="hidden w-[320px] border-r border-border/70 bg-[#f8f3ea]/80 px-3 py-5 backdrop-blur lg:block">
+        <aside className="hidden w-[320px] border-r border-border/70 bg-card/80 px-3 py-5 backdrop-blur lg:block">
           <BrandBlock selectedChallenge={selectedChallenge} selectedChallengeLabel={selectedChallengeLabel} />
           <SidebarNav activeFlow={activeFlow} onFlowChange={onFlowChange} />
         </aside>
@@ -41,7 +41,7 @@ export function AppShell({
                     <Menu className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="max-w-[320px] border-border bg-[#f8f3ea] text-foreground">
+                <SheetContent className="max-w-[320px] border-border bg-card text-foreground">
                   <SheetHeader>
                     <SheetTitle className="text-foreground">Navigate Flows</SheetTitle>
                   </SheetHeader>
