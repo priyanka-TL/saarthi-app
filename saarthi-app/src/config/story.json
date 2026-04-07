@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "defaultContextId": "listening-general",
+  "defaultContextId": "listening-story",
   "defaultScriptId": "story-to-saathi-demo",
   "contexts": [
     {

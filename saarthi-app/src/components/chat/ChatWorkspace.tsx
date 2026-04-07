@@ -34,7 +34,7 @@ import {
   storySimulationEnabled,
 } from '@/lib/storyFlow'
 import { cn } from '@/lib/utils'
-import type { DemoUserStep, RouteContext } from '@/types/homeFlow'
+import type { DemoUserStep, HomeFlowConfig, RouteContext } from '@/types/homeFlow'
 import type { ChatBlock, ChatMessage } from '@/types/chat'
 import type { FlowKey } from '@/types/saarthi'
 
@@ -171,11 +171,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     || (isStoryRoutedMode && !storyContext)
     || (isSaathiRoutedMode && !saathiContext)
     || (isCommonsRoutedMode && !commonsContext)
-  const contextBadgeAnimationKey = [
-    isRoutedContextUnset ? 'unset' : 'set',
-    contextLabel ?? 'context',
-    subContextLabel ?? 'sub-context',
-  ].join('|')
+  const showUnsetContextState = activeFlow === 'home' && isRoutedContextUnset
+  const displayContextLabel = contextLabel ?? (activeFlow !== 'home' ? getFlowLabel(activeFlow) : undefined)
 
   const homeDemoScript = useMemo(
     () => getDemoScriptById(homeFlowConfig.defaultScriptId, homeFlowConfig),
@@ -310,10 +307,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       return
     }
 
-    const defaultContext =
-      routedFlowConfig.contexts.find((context) => context.id === routedFlowConfig.defaultContextId) ??
-      routedFlowConfig.contexts[0] ??
-      null
+    const defaultContext = getPreferredContextForMode(activeFlow, routedFlowConfig)
     if (!defaultContext) {
       return
     }
@@ -361,9 +355,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       const currentModeContext = getContextByMode(activeFlow)
 
       if (activeFlow !== 'home' && !currentModeContext) {
-        const defaultContext =
-          routedFlowConfig.contexts.find((context) => context.id === routedFlowConfig.defaultContextId) ??
-          routedFlowConfig.contexts[0]
+        const defaultContext = getPreferredContextForMode(activeFlow, routedFlowConfig)
         if (defaultContext) {
           setContextByMode(activeFlow, defaultContext)
           responseFlow = defaultContext.flow
@@ -673,11 +665,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card/75 shadow-sm">
       <div className="border-b border-border/80 bg-background/75 px-4 py-3 md:px-6">
-        <div
-          className="flex flex-wrap items-center gap-2 motion-safe:animate-fade-in motion-safe:[animation-fill-mode:both]"
-          key={contextBadgeAnimationKey}
-        >
-          {isRoutedContextUnset ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {showUnsetContextState ? (
             <>
               <Badge className="border-dashed border-border text-muted-foreground" variant="outline">
                 Context: Not selected yet
@@ -689,27 +678,21 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
           ) : (
             <>
               <Badge className="border-primary/30 bg-primary/10 text-primary" variant="outline">
-                Context: {contextLabel}
+                Context: {displayContextLabel}
               </Badge>
-              {subContextLabel !== undefined ? (
+              {subContextLabel ? (
                 <Badge variant="outline">Sub-context: {subContextLabel}</Badge>
               ) : activeFlow !== 'home' ? (
-                <Badge variant="outline">Sub-context:</Badge>
+                <Badge className="text-muted-foreground" variant="outline">
+                  Sub-context: -
+                </Badge>
               ) : null}
             </>
           )}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          {isRoutedContextUnset
-            ? activeFlow === 'feedback'
-              ? 'Share your feedback, and SAARTHI will align the right feedback context.'
-              : activeFlow === 'story'
-              ? 'Share your story details, and SAARTHI will align the right story context.'
-              : activeFlow === 'companion'
-              ? 'Describe your challenge, and SAARTHI will align the right support context.'
-              : activeFlow === 'commons'
-              ? 'Tell me what resource you need, and SAARTHI will align the right commons context.'
-              : 'Share what you want to do, and SAARTHI will auto-select the right context.'
+          {showUnsetContextState
+            ? 'Share what you want to do, and SAARTHI will auto-select the right context.'
             : activeFlow === 'home'
             ? 'Home routing evaluates every user turn and keeps context sticky until a new match appears.'
             : activeFlow === 'feedback'
@@ -939,6 +922,25 @@ function pickThinkingLabel(flow: FlowKey) {
 
   const flowLabels = labels[flow]
   return flowLabels[Math.floor(Math.random() * flowLabels.length)]
+}
+
+function getPreferredContextForMode(mode: FlowKey, config: HomeFlowConfig) {
+  const preferredFlowByMode: Partial<Record<FlowKey, RouteContext['flow']>> = {
+    feedback: 'capture',
+    story: 'story',
+    companion: 'companion',
+    commons: 'commons',
+  }
+
+  const preferredFlow = preferredFlowByMode[mode]
+  if (preferredFlow) {
+    const preferredContext = config.contexts.find((context) => context.flow === preferredFlow)
+    if (preferredContext) {
+      return preferredContext
+    }
+  }
+
+  return config.contexts.find((context) => context.id === config.defaultContextId) ?? config.contexts[0] ?? null
 }
 
 function getAssistantResponseDelayMs(text: string, hasBlocks: boolean) {
