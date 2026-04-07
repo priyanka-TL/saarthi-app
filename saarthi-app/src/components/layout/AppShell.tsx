@@ -27,9 +27,9 @@ export function AppShell({
   selectedChallenge,
 }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8f4eb] via-[#fefdfa] to-[#f7fafc] text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/45 text-foreground">
       <div className="flex min-h-screen w-full flex-col lg:flex-row">
-        <aside className="hidden w-[320px] border-r border-border/70 bg-[#f8f3ea]/80 px-3 py-5 backdrop-blur lg:block">
+        <aside className="hidden w-[320px] border-r border-border/70 bg-card/80 px-3 py-5 backdrop-blur lg:block">
           <BrandBlock
             selectedChallenge={selectedChallenge}
             selectedChallengeLabel={selectedChallengeLabel}
@@ -54,7 +54,7 @@ export function AppShell({
                     <Menu className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="max-w-[320px] border-border bg-[#f8f3ea] text-foreground">
+                <SheetContent className="max-w-[320px] border-border bg-card text-foreground">
                   <SheetHeader>
                     <SheetTitle className="text-foreground">
                       Navigate Flows
@@ -111,6 +111,11 @@ function BrandBlock({
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
           Online
         </div>
+      </div>
+
+      <div className="mt-3 rounded-lg border border-border bg-background px-2.5 py-2 text-[11px] text-muted-foreground">
+        Active challenge: {selectedChallengeLabel}
+        <span className="ml-1 text-foreground/75">({selectedChallenge})</span>
       </div>
     </div>
   );
