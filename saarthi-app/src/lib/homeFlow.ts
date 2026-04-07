@@ -12,6 +12,7 @@ import type {
 
 const routedFlows: RoutedFlowKey[] = [
   "feedback",
+  "commons",
   "capture",
   "insights",
   "recommendations",

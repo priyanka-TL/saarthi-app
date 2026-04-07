@@ -45,6 +45,7 @@ const timelineOptions = ['1 week', '2 weeks', '3 weeks', '1 month', '6 weeks']
 const flowLabels: Record<FlowKey, string> = {
   home: 'Home',
   feedback: 'Capture Feedback',
+  commons: 'SG Commons Portal',
   capture: 'Capture Challenge',
   insights: 'Insights Engine',
   recommendations: 'Recommendations',
@@ -64,6 +65,9 @@ export function getComposerPlaceholder(flow: FlowKey) {
   }
   if (flow === 'feedback') {
     return 'Capture feedback details step-by-step, then share what changed.'
+  }
+  if (flow === 'commons') {
+    return 'Ask for resources, toolkits, or assets available on SG Commons.'
   }
   if (flow === 'capture') {
     return 'Try: show summary, set where: ..., set who: ..., set tried: ...'
@@ -116,6 +120,14 @@ export function getChatSuggestions({
       { id: 'fb-1', flow, label: 'Submit feedback', prompt: 'I want to submit a feedback' },
       { id: 'fb-2', flow, label: 'What changed', prompt: 'We built a toilet facility in the school' },
       { id: 'fb-3', flow, label: 'Share outcome', prompt: 'Attendance of girl students improved.' },
+    ]
+  }
+
+  if (flow === 'commons') {
+    return [
+      { id: 'com-1', flow, label: 'Find FLN resources', prompt: 'I want to know more about FLN & TLM use' },
+      { id: 'com-2', flow, label: 'Show useful assets', prompt: 'show resources' },
+      { id: 'com-3', flow, label: 'What others used', prompt: 'show what others did' },
     ]
   }
 
@@ -187,6 +199,10 @@ export function resolveChatResponse(params: ChatEngineInput): ChatEngineResult {
 
   if (params.flow === 'feedback') {
     return resolveCaptureResponse(params)
+  }
+
+  if (params.flow === 'commons') {
+    return resolveRecommendationsResponse(params)
   }
 
   if (params.flow === 'capture') {

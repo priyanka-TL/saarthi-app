@@ -12,10 +12,12 @@ import {
   resolveChatResponse,
 } from '@/lib/chatEngine'
 import {
+  commonsFlowConfig,
+  commonsSimulationEnabled,
+} from '@/lib/commonsFlow'
+import {
   feedbackFlowConfig,
   feedbackSimulationEnabled,
-  getFeedbackDemoScriptById,
-  resolveFeedbackRouteMatch,
 } from '@/lib/feedbackFlow'
 import {
   getDemoScriptById,
@@ -23,6 +25,14 @@ import {
   homeSimulationEnabled,
   resolveRouteMatch,
 } from '@/lib/homeFlow'
+import {
+  saathiFlowConfig,
+  saathiSimulationEnabled,
+} from '@/lib/saathiFlow'
+import {
+  storyFlowConfig,
+  storySimulationEnabled,
+} from '@/lib/storyFlow'
 import { cn } from '@/lib/utils'
 import type { DemoUserStep, RouteContext } from '@/types/homeFlow'
 import type { ChatBlock, ChatMessage } from '@/types/chat'
@@ -48,6 +58,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const [assistantThinkingLabel, setAssistantThinkingLabel] = useState('Reviewing your input...')
   const [homeContext, setHomeContext] = useState<RouteContext | null>(null)
   const [feedbackContext, setFeedbackContext] = useState<RouteContext | null>(null)
+  const [storyContext, setStoryContext] = useState<RouteContext | null>(null)
+  const [saathiContext, setSaathiContext] = useState<RouteContext | null>(null)
+  const [commonsContext, setCommonsContext] = useState<RouteContext | null>(null)
 
   const {
     selectedChallenge,
@@ -82,6 +95,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
 
   const homeContextRef = useRef(homeContext)
   const feedbackContextRef = useRef(feedbackContext)
+  const storyContextRef = useRef(storyContext)
+  const saathiContextRef = useRef(saathiContext)
+  const commonsContextRef = useRef(commonsContext)
   const activeFlowRef = useRef(activeFlow)
 
   useEffect(() => {
@@ -93,32 +109,86 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }, [feedbackContext])
 
   useEffect(() => {
+    storyContextRef.current = storyContext
+  }, [storyContext])
+
+  useEffect(() => {
+    saathiContextRef.current = saathiContext
+  }, [saathiContext])
+
+  useEffect(() => {
+    commonsContextRef.current = commonsContext
+  }, [commonsContext])
+
+  useEffect(() => {
     activeFlowRef.current = activeFlow
   }, [activeFlow])
 
   const isHomeRoutedMode = activeFlow === 'home'
   const isFeedbackRoutedMode = activeFlow === 'feedback'
+  const isStoryRoutedMode = activeFlow === 'story'
+  const isSaathiRoutedMode = activeFlow === 'companion'
+  const isCommonsRoutedMode = activeFlow === 'commons'
 
   const effectiveFlow = isHomeRoutedMode
     ? homeContext?.flow ?? 'home'
     : isFeedbackRoutedMode
     ? feedbackContext?.flow ?? 'capture'
+    : isStoryRoutedMode
+    ? storyContext?.flow ?? 'story'
+    : isSaathiRoutedMode
+    ? saathiContext?.flow ?? 'companion'
+    : isCommonsRoutedMode
+    ? commonsContext?.flow ?? 'recommendations'
     : activeFlow
 
   const contextLabel = isHomeRoutedMode
     ? homeContext?.label
     : isFeedbackRoutedMode
     ? feedbackContext?.label
+    : isStoryRoutedMode
+    ? storyContext?.label
+    : isSaathiRoutedMode
+    ? saathiContext?.label
+    : isCommonsRoutedMode
+    ? commonsContext?.label
     : getFlowLabel(activeFlow)
-  const subContextLabel = isHomeRoutedMode ? homeContext?.subLabel : isFeedbackRoutedMode ? feedbackContext?.subLabel : undefined
-  const isRoutedContextUnset = (isHomeRoutedMode && !homeContext) || (isFeedbackRoutedMode && !feedbackContext)
+  const subContextLabel = isHomeRoutedMode
+    ? homeContext?.subLabel
+    : isFeedbackRoutedMode
+    ? feedbackContext?.subLabel
+    : isStoryRoutedMode
+    ? storyContext?.subLabel
+    : isSaathiRoutedMode
+    ? saathiContext?.subLabel
+    : isCommonsRoutedMode
+    ? commonsContext?.subLabel
+    : undefined
+  const isRoutedContextUnset =
+    (isHomeRoutedMode && !homeContext)
+    || (isFeedbackRoutedMode && !feedbackContext)
+    || (isStoryRoutedMode && !storyContext)
+    || (isSaathiRoutedMode && !saathiContext)
+    || (isCommonsRoutedMode && !commonsContext)
 
   const homeDemoScript = useMemo(
     () => getDemoScriptById(homeFlowConfig.defaultScriptId, homeFlowConfig),
     [],
   )
   const feedbackDemoScript = useMemo(
-    () => getFeedbackDemoScriptById(feedbackFlowConfig.defaultScriptId, feedbackFlowConfig),
+    () => getDemoScriptById(feedbackFlowConfig.defaultScriptId, feedbackFlowConfig),
+    [],
+  )
+  const storyDemoScript = useMemo(
+    () => getDemoScriptById(storyFlowConfig.defaultScriptId, storyFlowConfig),
+    [],
+  )
+  const saathiDemoScript = useMemo(
+    () => getDemoScriptById(saathiFlowConfig.defaultScriptId, saathiFlowConfig),
+    [],
+  )
+  const commonsDemoScript = useMemo(
+    () => getDemoScriptById(commonsFlowConfig.defaultScriptId, commonsFlowConfig),
     [],
   )
 
@@ -139,10 +209,60 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       if (mode === 'feedback') {
         return feedbackContextRef.current?.flow ?? 'capture'
       }
+      if (mode === 'story') {
+        return storyContextRef.current?.flow ?? 'story'
+      }
+      if (mode === 'companion') {
+        return saathiContextRef.current?.flow ?? 'companion'
+      }
+      if (mode === 'commons') {
+        return commonsContextRef.current?.flow ?? 'recommendations'
+      }
       return mode
     },
     [],
   )
+
+  const setContextByMode = useCallback((mode: FlowKey, context: RouteContext | null) => {
+    if (mode === 'home') {
+      setHomeContext(context)
+      return
+    }
+    if (mode === 'feedback') {
+      setFeedbackContext(context)
+      return
+    }
+    if (mode === 'story') {
+      setStoryContext(context)
+      return
+    }
+    if (mode === 'companion') {
+      setSaathiContext(context)
+      return
+    }
+    if (mode === 'commons') {
+      setCommonsContext(context)
+    }
+  }, [])
+
+  const getContextByMode = useCallback((mode: FlowKey): RouteContext | null => {
+    if (mode === 'home') {
+      return homeContextRef.current
+    }
+    if (mode === 'feedback') {
+      return feedbackContextRef.current
+    }
+    if (mode === 'story') {
+      return storyContextRef.current
+    }
+    if (mode === 'companion') {
+      return saathiContextRef.current
+    }
+    if (mode === 'commons') {
+      return commonsContextRef.current
+    }
+    return null
+  }, [])
 
   const appendScriptedAssistantTurn = useCallback((text: string, blocks?: ChatBlock[]) => {
     const routedFlow = getRuntimeFlow()
@@ -168,29 +288,46 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     let responseFlow: FlowKey = getRuntimeFlow(activeFlow)
     let contextNoticeMessage: ChatMessage | null = null
 
-    if (activeFlow === 'feedback') {
-      if (!feedbackContext) {
-        const defaultFeedbackContext =
-          feedbackFlowConfig.contexts.find((context) => context.id === feedbackFlowConfig.defaultContextId) ??
-          feedbackFlowConfig.contexts[0]
-        if (defaultFeedbackContext) {
-          setFeedbackContext(defaultFeedbackContext)
-          responseFlow = defaultFeedbackContext.flow
+    const routedFlowConfig = activeFlow === 'home'
+      ? homeFlowConfig
+      : activeFlow === 'feedback'
+      ? feedbackFlowConfig
+      : activeFlow === 'story'
+      ? storyFlowConfig
+      : activeFlow === 'companion'
+      ? saathiFlowConfig
+      : activeFlow === 'commons'
+      ? commonsFlowConfig
+      : null
+
+    if (routedFlowConfig) {
+      const currentModeContext = getContextByMode(activeFlow)
+
+      if (activeFlow !== 'home' && !currentModeContext) {
+        const defaultContext =
+          routedFlowConfig.contexts.find((context) => context.id === routedFlowConfig.defaultContextId) ??
+          routedFlowConfig.contexts[0]
+        if (defaultContext) {
+          setContextByMode(activeFlow, defaultContext)
+          responseFlow = defaultContext.flow
         }
       }
 
-      const feedbackRouteMatch = resolveFeedbackRouteMatch(input, feedbackFlowConfig)
-      if (feedbackRouteMatch) {
-        responseFlow = feedbackRouteMatch.context.flow
+      const routeMatch = resolveRouteMatch(input, routedFlowConfig)
+      if (routeMatch) {
+        responseFlow = routeMatch.context.flow
 
-        if (feedbackRouteMatch.context.id !== feedbackContext?.id) {
-          setFeedbackContext(feedbackRouteMatch.context)
-          contextNoticeMessage = {
-            id: nextId(),
-            role: 'system',
-            flow: feedbackRouteMatch.context.flow,
-            timestamp: new Date().toISOString(),
-            text: feedbackRouteMatch.rule.notice,
+        if (routeMatch.context.id !== currentModeContext?.id) {
+          setContextByMode(activeFlow, routeMatch.context)
+
+          if (routeMatch.rule.notice.trim().length > 0) {
+            contextNoticeMessage = {
+              id: nextId(),
+              role: 'system',
+              flow: routeMatch.context.flow,
+              timestamp: new Date().toISOString(),
+              text: routeMatch.rule.notice,
+            }
           }
         }
       }
@@ -282,10 +419,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     askCompanion,
     captureAnswers,
     dataset,
-    feedbackContext,
     generateCapturedSummary,
+    getContextByMode,
     getRuntimeFlow,
-    homeContext,
     improvementPlanDraft,
     insights,
     nextId,
@@ -293,6 +429,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     programDesignDraft,
     selectedRecommendations,
     setCaptureAnswer,
+    setContextByMode,
     setImprovementPlanField,
     setProgramDraftField,
     setStoryField,
@@ -310,11 +447,23 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       ? homeSimulationEnabled
       : activeFlow === 'feedback'
       ? feedbackSimulationEnabled
+      : activeFlow === 'story'
+      ? storySimulationEnabled
+      : activeFlow === 'companion'
+      ? saathiSimulationEnabled
+      : activeFlow === 'commons'
+      ? commonsSimulationEnabled
       : false
     const demoScript = activeFlow === 'home'
       ? homeDemoScript
       : activeFlow === 'feedback'
       ? feedbackDemoScript
+      : activeFlow === 'story'
+      ? storyDemoScript
+      : activeFlow === 'companion'
+      ? saathiDemoScript
+      : activeFlow === 'commons'
+      ? commonsDemoScript
       : null
 
     if (!simulationEnabled || !demoScript) {
@@ -415,7 +564,16 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       setIsAssistantThinking(false)
       setIsDraftAutoTyping(false)
     }
-  }, [activeFlow, appendScriptedAssistantTurn, feedbackDemoScript, getRuntimeFlow, homeDemoScript])
+  }, [
+    activeFlow,
+    appendScriptedAssistantTurn,
+    commonsDemoScript,
+    feedbackDemoScript,
+    getRuntimeFlow,
+    homeDemoScript,
+    saathiDemoScript,
+    storyDemoScript,
+  ])
 
   const submitDraft = useCallback((rawPrompt: string) => {
     if (isDraftAutoTyping || isAssistantThinking) {
@@ -479,11 +637,23 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
           {isRoutedContextUnset
             ? activeFlow === 'feedback'
               ? 'Share your feedback, and SAARTHI will align the right feedback context.'
+              : activeFlow === 'story'
+              ? 'Share your story details, and SAARTHI will align the right story context.'
+              : activeFlow === 'companion'
+              ? 'Describe your challenge, and SAARTHI will align the right support context.'
+              : activeFlow === 'commons'
+              ? 'Tell me what resource you need, and SAARTHI will align the right commons context.'
               : 'Share what you want to do, and SAARTHI will auto-select the right context.'
             : activeFlow === 'home'
             ? 'Home routing evaluates every user turn and keeps context sticky until a new match appears.'
             : activeFlow === 'feedback'
             ? 'Feedback flow keeps context sticky so the capture conversation remains consistent.'
+            : activeFlow === 'story'
+            ? 'Story flow keeps context sticky so your narrative capture remains consistent.'
+            : activeFlow === 'companion'
+            ? 'Saathi flow keeps context sticky so support guidance stays grounded.'
+            : activeFlow === 'commons'
+            ? 'Commons flow keeps context sticky so discovery remains focused.'
             : 'Advanced mode is manual, but matching intents still route this shared thread automatically.'}
         </p>
       </div>
@@ -661,6 +831,7 @@ function pickThinkingLabel(flow: FlowKey) {
   const labels: Record<FlowKey, string[]> = {
     home: ['Understanding your intent...', 'Routing to the best context...', 'Preparing the next step...'],
     feedback: ['Reviewing your feedback...', 'Framing the feedback context...', 'Preparing the next feedback step...'],
+    commons: ['Searching SG Commons...', 'Reviewing relevant assets...', 'Preparing resource suggestions...'],
     capture: ['Reviewing captured signals...', 'Structuring challenge details...', 'Assembling your summary...'],
     insights: ['Scanning patterns...', 'Comparing root causes...', 'Synthesizing insights...'],
     recommendations: ['Matching practical recommendations...', 'Evaluating options...', 'Building recommendation shortlist...'],

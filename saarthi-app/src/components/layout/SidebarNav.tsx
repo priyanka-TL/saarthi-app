@@ -61,7 +61,7 @@ const capabilityItems: CapabilityItem[] = [
     icon: BookOpen,
   },
   {
-    key: 'recommendations',
+    key: 'commons',
     label: 'SG Commons Portal',
     subtitle: 'AI search for ecosystem assets',
     icon: Globe,
