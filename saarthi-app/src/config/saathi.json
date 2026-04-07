@@ -24,12 +24,6 @@
       "title": "Story Capture to Saathi",
       "steps": [
         {
-          "id": "mitra-summary-3",
-          "type": "assistant",
-          "text": "How can I help you with today?",
-          "postDelayMs": 700
-        },
-        {
           "id": "issue-intent",
           "type": "user",
           "text": "I need some help, We are seeing a drop in enrollment.",
