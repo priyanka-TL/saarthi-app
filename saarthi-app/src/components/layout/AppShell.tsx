@@ -1,22 +1,16 @@
-import { Compass, Menu } from "lucide-react";
-import { type PropsWithChildren } from "react";
+import { Compass, Menu } from 'lucide-react'
+import { type PropsWithChildren } from 'react'
 
-import { SidebarNav } from "@/components/layout/SidebarNav";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import type { ChallengeKey, FlowKey } from "@/types/saarthi";
+import { SidebarNav } from '@/components/layout/SidebarNav'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import type { ChallengeKey, FlowKey } from '@/types/saarthi'
 
 interface AppShellProps extends PropsWithChildren {
-  activeFlow: FlowKey;
-  onFlowChange: (flow: FlowKey) => void;
-  selectedChallengeLabel: string;
-  selectedChallenge: ChallengeKey;
+  activeFlow: FlowKey
+  onFlowChange: (flow: FlowKey) => void
+  selectedChallengeLabel: string
+  selectedChallenge: ChallengeKey
 }
 
 export function AppShell({
@@ -30,10 +24,7 @@ export function AppShell({
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/45 text-foreground">
       <div className="flex min-h-screen w-full flex-col lg:flex-row">
         <aside className="hidden w-[320px] border-r border-border/70 bg-card/80 px-3 py-5 backdrop-blur lg:block">
-          <BrandBlock
-            selectedChallenge={selectedChallenge}
-            selectedChallengeLabel={selectedChallengeLabel}
-          />
+          <BrandBlock selectedChallenge={selectedChallenge} selectedChallengeLabel={selectedChallengeLabel} />
           <SidebarNav activeFlow={activeFlow} onFlowChange={onFlowChange} />
         </aside>
 
@@ -41,12 +32,8 @@ export function AppShell({
           <header className="sticky top-0 z-20 border-b border-border/70 bg-card/80 px-4 py-3 backdrop-blur md:px-6 lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-foreground">
-                  SAARTHI Prototype
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  ShikshaLokam-inspired capability walkthrough
-                </p>
+                <p className="text-sm font-semibold text-foreground">SAARTHI Prototype</p>
+                <p className="text-xs text-muted-foreground">ShikshaLokam-inspired capability walkthrough</p>
               </div>
               <Sheet>
                 <SheetTrigger asChild>
@@ -56,40 +43,30 @@ export function AppShell({
                 </SheetTrigger>
                 <SheetContent className="max-w-[320px] border-border bg-card text-foreground">
                   <SheetHeader>
-                    <SheetTitle className="text-foreground">
-                      Navigate Flows
-                    </SheetTitle>
+                    <SheetTitle className="text-foreground">Navigate Flows</SheetTitle>
                   </SheetHeader>
                   <div className="mt-5">
-                    <BrandBlock
-                      selectedChallenge={selectedChallenge}
-                      selectedChallengeLabel={selectedChallengeLabel}
-                    />
-                    <SidebarNav
-                      activeFlow={activeFlow}
-                      onFlowChange={onFlowChange}
-                    />
+                    <BrandBlock selectedChallenge={selectedChallenge} selectedChallengeLabel={selectedChallengeLabel} />
+                    <SidebarNav activeFlow={activeFlow} onFlowChange={onFlowChange} />
                   </div>
                 </SheetContent>
               </Sheet>
             </div>
           </header>
 
-          <section className="flex flex-1 min-h-0 p-4 md:p-6 lg:p-8">
-            {children}
-          </section>
+          <section className="flex flex-1 min-h-0 p-4 md:p-6 lg:p-8">{children}</section>
         </main>
       </div>
     </div>
-  );
+  )
 }
 
 function BrandBlock({
   selectedChallenge,
   selectedChallengeLabel,
 }: {
-  selectedChallenge: ChallengeKey;
-  selectedChallengeLabel: string;
+  selectedChallenge: ChallengeKey
+  selectedChallengeLabel: string
 }) {
   return (
     <div className="mb-5 rounded-xl border border-border/80 bg-card/75 p-3">
@@ -99,12 +76,8 @@ function BrandBlock({
             <Compass className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-lg font-semibold leading-tight text-foreground">
-              SAARTHI
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Education Intelligence Companion
-            </p>
+            <p className="text-lg font-semibold leading-tight text-foreground">SAARTHI</p>
+            <p className="text-xs text-muted-foreground">Education Intelligence Companion</p>
           </div>
         </div>
         <div className="mt-1 flex items-center gap-1 text-[11px] text-emerald-700">
@@ -118,5 +91,5 @@ function BrandBlock({
         <span className="ml-1 text-foreground/75">({selectedChallenge})</span>
       </div>
     </div>
-  );
+  )
 }
