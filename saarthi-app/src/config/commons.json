@@ -6,7 +6,6 @@
     {
       "id": "commons-general",
       "label": "commons Context",
-      "subLabel": "Capture discussions",
       "flow": "capture"
     },
     {
