@@ -89,7 +89,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         role: 'assistant',
         flow: 'home',
         timestamp: new Date().toISOString(),
-        text: `Namaste Akash. I am SAARTHI. How can I help you today?`,
+        text: `Namaste Akash. How can I help you today?`,
       },
     ]
   })
@@ -290,6 +290,36 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     }
     return null
   }, [])
+
+  useEffect(() => {
+    if (activeFlow === 'home') {
+      return
+    }
+
+    const routedFlowConfig = activeFlow === 'feedback'
+      ? feedbackFlowConfig
+      : activeFlow === 'story'
+      ? storyFlowConfig
+      : activeFlow === 'companion'
+      ? saathiFlowConfig
+      : activeFlow === 'commons'
+      ? commonsFlowConfig
+      : null
+
+    if (!routedFlowConfig || getContextByMode(activeFlow)) {
+      return
+    }
+
+    const defaultContext =
+      routedFlowConfig.contexts.find((context) => context.id === routedFlowConfig.defaultContextId) ??
+      routedFlowConfig.contexts[0] ??
+      null
+    if (!defaultContext) {
+      return
+    }
+
+    setContextByMode(activeFlow, defaultContext)
+  }, [activeFlow, getContextByMode, setContextByMode])
 
   const appendScriptedAssistantTurn = useCallback((text: string, blocks?: ChatBlock[]) => {
     const routedFlow = getRuntimeFlow()
@@ -661,7 +691,11 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
               <Badge className="border-primary/30 bg-primary/10 text-primary" variant="outline">
                 Context: {contextLabel}
               </Badge>
-              {subContextLabel ? <Badge variant="outline">Sub-context: {subContextLabel}</Badge> : null}
+              {subContextLabel !== undefined ? (
+                <Badge variant="outline">Sub-context: {subContextLabel}</Badge>
+              ) : activeFlow !== 'home' ? (
+                <Badge variant="outline">Sub-context:</Badge>
+              ) : null}
             </>
           )}
         </div>
