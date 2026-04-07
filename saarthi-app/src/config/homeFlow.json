@@ -57,41 +57,20 @@
           "type": "user",
           "text": "I need to record a story",
           "skipEngineResponse": true,
-          "typingMsPerChar": 24,
+          "typingMsPerChar": 90,
           "postDelayMs": 700
         },
         {
           "id": "mitra-intro",
           "type": "assistant",
-          "text": "Hi! I'm MItra. I'll help capture your improvement story. What's your name?",
+          "text": "Sure Akash, I'll help capture your improvement story.",
           "postDelayMs": 700
         },
-        {
-          "id": "mitra-name",
-          "type": "user",
-          "text": "Akash",
-          "skipEngineResponse": true,
-          "typingMsPerChar": 20,
-          "postDelayMs": 600
-        },
-        {
-          "id": "mitra-role",
-          "type": "assistant",
-          "text": "Nice to meet you, Akash. What do you do in education?",
-          "postDelayMs": 650
-        },
-        {
-          "id": "mitra-role-answer",
-          "type": "user",
-          "text": "Teacher at BPS Gokul School, North Bangalore",
-          "skipEngineResponse": true,
-          "typingMsPerChar": 24,
-          "postDelayMs": 600
-        },
+
         {
           "type": "assistant",
           "id": "mitra-issue-question",
-          "text": "What issue did you notice in your school?",
+          "text": "What issue did you notice in BPS Gokul School, North Bangalore?",
           "postDelayMs": 650
         },
         {
@@ -99,7 +78,7 @@
           "type": "user",
           "text": "Students had to travel long distances, so many stayed at home",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
@@ -113,7 +92,7 @@
           "type": "user",
           "text": "No transportation facilities",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
@@ -127,7 +106,7 @@
           "type": "user",
           "text": "Worked with parents and arranged bicycles for students",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
@@ -141,7 +120,7 @@
           "type": "user",
           "text": "Parents were hesitant and funds were limited",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
@@ -155,7 +134,7 @@
           "type": "user",
           "text": "Continuous discussions with parents and community support for funding",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
@@ -169,7 +148,7 @@
           "type": "user",
           "text": "Parents and community leaders",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
@@ -183,7 +162,7 @@
           "type": "user",
           "text": "3 months",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
@@ -197,7 +176,7 @@
           "type": "user",
           "text": "Student attendance started increasing",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 600
         },
         {
@@ -211,7 +190,7 @@
           "type": "user",
           "text": "I am facing an issue with Grade 1 enrollment drop",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 700
         },
         {
@@ -225,7 +204,7 @@
           "type": "user",
           "text": "Mostly Grade 1. Parents are choosing a nearby private school.",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 650
         },
         {
@@ -239,7 +218,7 @@
           "type": "user",
           "text": "Yes, I spoke to some parents. They said:\n\nPrivate school has better English teaching\nThey feel our school lacks focus on studies\nThey think facilities are better in private schools",
           "skipEngineResponse": true,
-          "typingMsPerChar": 18,
+          "typingMsPerChar": 30,
           "postDelayMs": 700
         },
         {
@@ -253,7 +232,7 @@
           "type": "user",
           "text": "Yes, that's right.",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 650
         },
         {
@@ -267,7 +246,7 @@
           "type": "user",
           "text": "Option 1",
           "skipEngineResponse": true,
-          "typingMsPerChar": 20,
+          "typingMsPerChar": 30,
           "postDelayMs": 650
         },
         {

@@ -20,7 +20,7 @@ import {
   resolveRouteMatch,
 } from '@/lib/homeFlow'
 import { cn } from '@/lib/utils'
-import type { RouteContext } from '@/types/homeFlow'
+import type { DemoUserStep, RouteContext } from '@/types/homeFlow'
 import type { ChatBlock, ChatMessage } from '@/types/chat'
 import type { FlowKey } from '@/types/saarthi'
 
@@ -35,7 +35,9 @@ const defaultPostStepDelayMs = 700
 export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) {
   const idRef = useRef(0)
   const endRef = useRef<HTMLDivElement | null>(null)
-  const simulationStateRef = useRef<'idle' | 'running' | 'completed'>('idle')
+  const simulationStateRef = useRef<'idle' | 'running' | 'awaiting-user' | 'completed'>('idle')
+  const awaitingScriptedUserStepRef = useRef<DemoUserStep | null>(null)
+  const resumeSimulationRef = useRef<(() => void) | null>(null)
   const [draft, setDraft] = useState('')
   const [currentContext, setCurrentContext] = useState<RouteContext>(() => getDefaultRouteContext(homeFlowConfig))
 
@@ -66,7 +68,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         role: 'assistant',
         flow: initialContext.flow,
         timestamp: new Date().toISOString(),
-        text: `Namaste. I am SAARTHI. How can i help you today!!`,
+        text: `Namaste Akash. I am SAARTHI. How can i help you today!!`,
       },
     ]
   })
@@ -275,8 +277,20 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
           return
         }
 
-        sendPromptRef.current(step.text, { skipEngineResponse: step.skipEngineResponse })
-        setDraft('')
+        simulationStateRef.current = 'awaiting-user'
+        awaitingScriptedUserStepRef.current = step
+
+        await new Promise<void>((resolve) => {
+          resumeSimulationRef.current = resolve
+        })
+
+        if (cancelled) {
+          return
+        }
+
+        simulationStateRef.current = 'running'
+        awaitingScriptedUserStepRef.current = null
+        resumeSimulationRef.current = null
         await wait(step.postDelayMs ?? defaultPostStepDelayMs)
       }
     }
@@ -295,31 +309,46 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
 
     return () => {
       cancelled = true
-      if (simulationStateRef.current === 'running') {
+      awaitingScriptedUserStepRef.current = null
+      if (resumeSimulationRef.current) {
+        resumeSimulationRef.current()
+        resumeSimulationRef.current = null
+      }
+      if (simulationStateRef.current === 'running' || simulationStateRef.current === 'awaiting-user') {
         simulationStateRef.current = 'idle'
       }
     }
   }, [activeFlow, appendScriptedAssistantTurn, demoScript])
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!draft.trim()) {
+  const submitDraft = useCallback((rawPrompt: string) => {
+    const input = rawPrompt.trim()
+    if (!input) {
       return
     }
 
-    sendPrompt(draft)
+    const awaitingStep = awaitingScriptedUserStepRef.current
+    if (awaitingStep && simulationStateRef.current === 'awaiting-user') {
+      sendPrompt(input, { skipEngineResponse: awaitingStep.skipEngineResponse })
+      setDraft('')
+      const resume = resumeSimulationRef.current
+      resumeSimulationRef.current = null
+      resume?.()
+      return
+    }
+
+    sendPrompt(input)
     setDraft('')
+  }, [sendPrompt])
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    submitDraft(draft)
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
-      if (!draft.trim()) {
-        return
-      }
-
-      sendPrompt(draft)
-      setDraft('')
+      submitDraft(draft)
     }
   }
 
