@@ -1,4 +1,5 @@
 import homeFlowRaw from "@/config/homeFlow.json?raw";
+import type { ChatBlock } from "@/types/chat";
 import type {
   DemoScript,
   DemoStep,
@@ -171,6 +172,113 @@ function parseRule(
   };
 }
 
+function parseChatBlock(value: unknown): ChatBlock | null {
+  if (!isObject(value) || typeof value.type !== "string") {
+    return null;
+  }
+
+  if (
+    value.type === "list" &&
+    typeof value.title === "string" &&
+    Array.isArray(value.items)
+  ) {
+    const items = value.items.filter(
+      (item): item is string =>
+        typeof item === "string" && item.trim().length > 0,
+    );
+    if (items.length === 0) {
+      return null;
+    }
+    return {
+      type: "list",
+      title: value.title,
+      items,
+    };
+  }
+
+  if (
+    value.type === "kv" &&
+    typeof value.title === "string" &&
+    Array.isArray(value.rows)
+  ) {
+    const rows = value.rows
+      .filter(
+        (row): row is { label: string; value: string } =>
+          isObject(row) &&
+          typeof row.label === "string" &&
+          typeof row.value === "string",
+      )
+      .map((row) => ({ label: row.label, value: row.value }));
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return {
+      type: "kv",
+      title: value.title,
+      rows,
+    };
+  }
+
+  if (value.type === "tags" && Array.isArray(value.tags)) {
+    const tags = value.tags.filter(
+      (tag): tag is string => typeof tag === "string" && tag.trim().length > 0,
+    );
+    if (tags.length === 0) {
+      return null;
+    }
+    return {
+      type: "tags",
+      title: typeof value.title === "string" ? value.title : undefined,
+      tags,
+    };
+  }
+
+  if (value.type === "text" && typeof value.body === "string") {
+    return {
+      type: "text",
+      title: typeof value.title === "string" ? value.title : undefined,
+      body: value.body,
+    };
+  }
+
+  if (value.type === "actions" && Array.isArray(value.actions)) {
+    const actions = value.actions
+      .filter(
+        (action): action is { label: string; url?: string } =>
+          isObject(action) &&
+          typeof action.label === "string" &&
+          (typeof action.url === "undefined" || typeof action.url === "string"),
+      )
+      .map((action) => ({ label: action.label, url: action.url }));
+
+    if (actions.length === 0) {
+      return null;
+    }
+
+    return {
+      type: "actions",
+      title: typeof value.title === "string" ? value.title : undefined,
+      actions,
+    };
+  }
+
+  return null;
+}
+
+function parseChatBlocks(value: unknown): ChatBlock[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const blocks = value
+    .map((block) => parseChatBlock(block))
+    .filter((block): block is ChatBlock => Boolean(block));
+
+  return blocks.length > 0 ? blocks : undefined;
+}
+
 function parseStep(value: unknown): DemoStep | null {
   if (
     !isObject(value) ||
@@ -204,6 +312,7 @@ function parseStep(value: unknown): DemoStep | null {
       type: "assistant",
       text: value.text,
       postDelayMs,
+      blocks: parseChatBlocks(value.blocks),
     };
   }
 
