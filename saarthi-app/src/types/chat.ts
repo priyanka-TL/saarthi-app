@@ -23,6 +23,11 @@ export type ChatBlock =
       title?: string
       body: string
     }
+  | {
+      type: 'actions'
+      title?: string
+      actions: Array<{ label: string; url?: string }>
+    }
 
 export interface ChatMessage {
   id: string

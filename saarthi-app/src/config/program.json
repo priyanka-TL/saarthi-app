@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "defaultContextId": "program-design-lfa",
+  "defaultScriptId": "uc03-lfa-program-plan",
+  "contexts": [
+    {
+      "id": "program-design-lfa",
+      "label": "Design Companion",
+      "subLabel": "LFA Program Planning",
+      "flow": "program"
+    }
+  ],
+  "routingRules": [
+    {
+      "id": "program-design-intent",
+      "phrases": [
+        "i want to design a program",
+        "program plan",
+        "lfa plan",
+        "logical framework",
+        "structured intervention"
+      ],
+      "targetContextId": "program-design-lfa",
+      "notice": "Context switched to Design Companion (LFA Program Planning)."
+    }
+  ],
+  "demoScripts": [
+    {
+      "id": "uc03-lfa-program-plan",
+      "title": "UC-03 LFA Program Plan",
+      "steps": [
+        {
+          "id": "uc03-user-1",
+          "type": "user",
+          "text": "I want to design an intervention program to improve reading levels of students in Karnataka.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 700
+        },
+        {
+          "id": "uc03-assistant-1",
+          "type": "assistant",
+          "text": "Thanks for sharing that. To scope this well, is this intervention for all grades or specific grades at state level?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "uc03-user-2",
+          "type": "user",
+          "text": "Primary school only, for English and Hindi.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 650
+        },
+        {
+          "id": "uc03-assistant-2",
+          "type": "assistant",
+          "text": "Understood. So the challenge is low English and Hindi reading levels among primary students in Punjab. If useful, I can guide you through a Logical Framework Approach and generate a full program plan. Ready to begin?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "uc03-user-3",
+          "type": "user",
+          "text": "Yes, let's begin.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "uc03-assistant-3",
+          "type": "assistant",
+          "text": "Great. Starting with Impact: if this works over the next 12 months, what long-term student change do you want to see?",
+          "postDelayMs": 700
+        },
+        {
+          "id": "uc03-user-4",
+          "type": "user",
+          "text": "Grade 2 and 3 students should read independently.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 600
+        },
+        {
+          "id": "uc03-assistant-4",
+          "type": "assistant",
+          "text": "Good direction. Draft Impact: Grade 2-3 students develop independent reading ability by year end. A suitable impact metric could be: 80% of Grade 2-3 students meet grade-level reading benchmark in annual assessment. For this to happen, what program-level outcomes must become true?",
+          "postDelayMs": 800
+        },
+        {
+          "id": "uc03-user-5",
+          "type": "user",
+          "text": "Teachers should run reading circles 3 times a week, and we need monthly student reading tracking.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 650
+        },
+        {
+          "id": "uc03-assistant-5",
+          "type": "assistant",
+          "text": "Noted. Suggested methodology: 2-day in-person foundational training, fortnightly peer observations, and monthly review circles. Likely personas: Principal, Grade 2-3 teachers, CRC/mentor, and parents. Suggested activities plus process metrics: training attendance %, circles per class/week, peer visits/fortnight, % logs updated monthly, and review meetings held with at-risk follow-up. Which key resources are available, and what should I include as required support?",
+          "postDelayMs": 900
+        },
+        {
+          "id": "uc03-user-6",
+          "type": "user",
+          "text": "Training venue is available. We need student tracking sheets and reading circle activity cards.",
+          "skipEngineResponse": true,
+          "typingMsPerChar": 30,
+          "postDelayMs": 650
+        },
+        {
+          "id": "uc03-assistant-6",
+          "type": "assistant",
+          "text": "Perfect. Here is your compiled LFA Program Plan:\n\nProgram Title: Foundational Reading Improvement Program, Punjab (2026-27)\nImpact: Grade 2-3 students read independently by year end\nImpact Metric: 80% at/above benchmark in annual assessment\nOutcomes: (1) Reading circles run 3x/week (2) Monthly student-level tracking in place\nMethodology: 2-day training -> fortnightly peer observation -> monthly review circle\nPersonas: Principal, Teachers, CRC/Mentor, Parents with clear responsibilities\nActivities + Metrics: 5 core activities with weekly/fortnightly/monthly process tracking\nInputs: Venue confirmed; tracking sheet + activity cards required\nDuration: 12 months with quarterly review milestones",
+          "blocks": [
+            {
+              "type": "kv",
+              "title": "Generated Document",
+              "rows": [
+                {
+                  "label": "Document Name",
+                  "value": "LFA_Program_Plan_Karnataka_2026-27"
+                },
+                {
+                  "label": "Formats",
+                  "value": ".docx and .pdf"
+                }
+              ]
+            },
+            {
+              "type": "actions",
+              "title": "Download",
+              "actions": [
+                {
+                  "label": "Download .docx"
+                },
+                {
+                  "label": "Download .pdf"
+                }
+              ]
+            }
+          ],
+          "postDelayMs": 950
+        },
+        {
+          "id": "uc03-assistant-7",
+          "type": "assistant",
+          "text": "Is there anything else I can help you with today?",
+          "postDelayMs": 700
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { Bot, SendHorizontal, UserCircle2 } from 'lucide-react'
+import { Bot, Download, SendHorizontal, UserCircle2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -25,6 +25,10 @@ import {
   homeSimulationEnabled,
   resolveRouteMatch,
 } from '@/lib/homeFlow'
+import {
+  programFlowConfig,
+  programSimulationEnabled,
+} from '@/lib/programFlow'
 import {
   saathiFlowConfig,
   saathiSimulationEnabled,
@@ -77,6 +81,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const [storyContext, setStoryContext] = useState<RouteContext | null>(null)
   const [saathiContext, setSaathiContext] = useState<RouteContext | null>(null)
   const [commonsContext, setCommonsContext] = useState<RouteContext | null>(null)
+  const [programContext, setProgramContext] = useState<RouteContext | null>(null)
 
   const {
     selectedChallenge,
@@ -114,6 +119,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const storyContextRef = useRef(storyContext)
   const saathiContextRef = useRef(saathiContext)
   const commonsContextRef = useRef(commonsContext)
+  const programContextRef = useRef(programContext)
   const activeFlowRef = useRef(activeFlow)
 
   useEffect(() => {
@@ -137,6 +143,10 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }, [commonsContext])
 
   useEffect(() => {
+    programContextRef.current = programContext
+  }, [programContext])
+
+  useEffect(() => {
     activeFlowRef.current = activeFlow
   }, [activeFlow])
 
@@ -145,6 +155,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const isStoryRoutedMode = activeFlow === 'story'
   const isSaathiRoutedMode = activeFlow === 'companion'
   const isCommonsRoutedMode = activeFlow === 'commons'
+  const isProgramRoutedMode = activeFlow === 'program'
 
   const effectiveFlow = isHomeRoutedMode
     ? homeContext?.flow ?? 'home'
@@ -156,6 +167,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     ? saathiContext?.flow ?? 'companion'
     : isCommonsRoutedMode
     ? commonsContext?.flow ?? 'recommendations'
+    : isProgramRoutedMode
+    ? programContext?.flow ?? 'program'
     : activeFlow
 
   const contextLabel = isHomeRoutedMode
@@ -168,6 +181,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     ? saathiContext?.label
     : isCommonsRoutedMode
     ? commonsContext?.label
+    : isProgramRoutedMode
+    ? programContext?.label
     : getFlowLabel(activeFlow)
   const subContextLabel = isHomeRoutedMode
     ? homeContext?.subLabel
@@ -179,6 +194,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     ? saathiContext?.subLabel
     : isCommonsRoutedMode
     ? commonsContext?.subLabel
+    : isProgramRoutedMode
+    ? programContext?.subLabel
     : undefined
   const isRoutedContextUnset =
     (isHomeRoutedMode && !homeContext)
@@ -186,6 +203,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     || (isStoryRoutedMode && !storyContext)
     || (isSaathiRoutedMode && !saathiContext)
     || (isCommonsRoutedMode && !commonsContext)
+    || (isProgramRoutedMode && !programContext)
   const showUnsetContextState = activeFlow === 'home' && isRoutedContextUnset
   const displayContextLabel = contextLabel ?? (activeFlow !== 'home' ? getFlowLabel(activeFlow) : undefined)
 
@@ -207,6 +225,10 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   )
   const commonsDemoScript = useMemo(
     () => getDemoScriptById(commonsFlowConfig.defaultScriptId, commonsFlowConfig),
+    [],
+  )
+  const programDemoScript = useMemo(
+    () => getDemoScriptById(programFlowConfig.defaultScriptId, programFlowConfig),
     [],
   )
 
@@ -257,6 +279,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       if (mode === 'commons') {
         return commonsContextRef.current?.flow ?? 'recommendations'
       }
+      if (mode === 'program') {
+        return programContextRef.current?.flow ?? 'program'
+      }
       return mode
     },
     [],
@@ -281,6 +306,10 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     }
     if (mode === 'commons') {
       setCommonsContext(context)
+      return
+    }
+    if (mode === 'program') {
+      setProgramContext(context)
     }
   }, [])
 
@@ -300,6 +329,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     if (mode === 'commons') {
       return commonsContextRef.current
     }
+    if (mode === 'program') {
+      return programContextRef.current
+    }
     return null
   }, [])
 
@@ -316,6 +348,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       ? saathiFlowConfig
       : activeFlow === 'commons'
       ? commonsFlowConfig
+      : activeFlow === 'program'
+      ? programFlowConfig
       : null
 
     if (!routedFlowConfig || getContextByMode(activeFlow)) {
@@ -364,6 +398,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       ? saathiFlowConfig
       : activeFlow === 'commons'
       ? commonsFlowConfig
+      : activeFlow === 'program'
+      ? programFlowConfig
       : null
 
     if (routedFlowConfig) {
@@ -517,6 +553,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       ? saathiSimulationEnabled
       : activeFlow === 'commons'
       ? commonsSimulationEnabled
+      : activeFlow === 'program'
+      ? programSimulationEnabled
       : false
     const demoScript = activeFlow === 'home'
       ? homeDemoScript
@@ -528,6 +566,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       ? saathiDemoScript
       : activeFlow === 'commons'
       ? commonsDemoScript
+      : activeFlow === 'program'
+      ? programDemoScript
       : null
 
     if (!simulationEnabled || !demoScript) {
@@ -640,6 +680,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     feedbackDemoScript,
     getRuntimeFlow,
     homeDemoScript,
+    programDemoScript,
     saathiDemoScript,
     storyDemoScript,
   ])
@@ -723,6 +764,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
             ? 'Saathi flow keeps context sticky so support guidance stays grounded.'
             : activeFlow === 'commons'
             ? 'Commons flow keeps context sticky so discovery remains focused.'
+            : activeFlow === 'program'
+            ? 'Design Companion flow keeps context sticky so program planning stays structured.'
             : 'Advanced mode is manual, but matching intents still route this shared thread automatically.'}
         </p>
       </div>
@@ -953,6 +996,45 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
           )
         }
 
+        if (block.type === 'actions') {
+          return (
+            <div
+              className="rounded-xl border border-border bg-card/70 p-3 motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]"
+              key={`${block.title ?? 'actions'}-${index}`}
+              style={{ animationDelay }}
+            >
+              {block.title ? (
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{block.title}</p>
+              ) : null}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {block.actions.map((action) => (
+                  action.url ? (
+                    <a
+                      className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
+                      href={action.url}
+                      key={`${action.label}-${action.url ?? 'no-url'}`}
+                      rel="noreferrer noopener"
+                      target="_blank"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      {action.label}
+                    </a>
+                  ) : (
+                    <button
+                      className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary"
+                      key={`${action.label}-button`}
+                      type="button"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      {action.label}
+                    </button>
+                  )
+                ))}
+              </div>
+            </div>
+          )
+        }
+
         return (
           <div
             className="rounded-xl border border-border bg-card/70 p-3 motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]"
@@ -995,6 +1077,7 @@ function getPreferredContextForMode(mode: FlowKey, config: HomeFlowConfig) {
     story: 'story',
     companion: 'companion',
     commons: 'commons',
+    program: 'program',
   }
 
   const preferredFlow = preferredFlowByMode[mode]

@@ -189,7 +189,6 @@ function parseChatBlock(value: unknown): ChatBlock | null {
     if (items.length === 0) {
       return null;
     }
-
     return {
       type: "list",
       title: value.title,
@@ -233,14 +232,12 @@ function parseChatBlock(value: unknown): ChatBlock | null {
     if (!Array.isArray(value.tags)) {
       return null;
     }
-
     const tags = value.tags.filter(
       (tag): tag is string => typeof tag === "string" && tag.trim().length > 0,
     );
     if (tags.length === 0) {
       return null;
     }
-
     return {
       type: "tags",
       title: typeof value.title === "string" ? value.title : undefined,
@@ -260,10 +257,31 @@ function parseChatBlock(value: unknown): ChatBlock | null {
     };
   }
 
+  if (value.type === "actions" && Array.isArray(value.actions)) {
+    const actions = value.actions
+      .filter(
+        (action): action is { label: string; url?: string } =>
+          isObject(action) &&
+          typeof action.label === "string" &&
+          (typeof action.url === "undefined" || typeof action.url === "string"),
+      )
+      .map((action) => ({ label: action.label, url: action.url }));
+
+    if (actions.length === 0) {
+      return null;
+    }
+
+    return {
+      type: "actions",
+      title: typeof value.title === "string" ? value.title : undefined,
+      actions,
+    };
+  }
+
   return null;
 }
 
-function parseAssistantBlocks(value: unknown): ChatBlock[] | undefined {
+function parseChatBlocks(value: unknown): ChatBlock[] | undefined {
   if (!Array.isArray(value)) {
     return undefined;
   }
@@ -307,8 +325,8 @@ function parseStep(value: unknown): DemoStep | null {
       id: value.id,
       type: "assistant",
       text: value.text,
-      blocks: parseAssistantBlocks(value.blocks),
       postDelayMs,
+      blocks: parseChatBlocks(value.blocks),
     };
   }
 
