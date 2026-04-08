@@ -1,4 +1,5 @@
 import homeFlowRaw from "@/config/homeFlow.json?raw";
+import type { ChatBlock } from "@/types/chat";
 import type {
   DemoScript,
   DemoStep,
@@ -19,6 +20,7 @@ const routedFlows: RoutedFlowKey[] = [
   "improvement",
   "story",
   "companion",
+  "mentoring",
   "program",
 ];
 
@@ -171,6 +173,108 @@ function parseRule(
   };
 }
 
+function parseChatBlock(value: unknown): ChatBlock | null {
+  if (!isObject(value) || typeof value.type !== "string") {
+    return null;
+  }
+
+  if (value.type === "list") {
+    if (typeof value.title !== "string" || !Array.isArray(value.items)) {
+      return null;
+    }
+
+    const items = value.items.filter(
+      (item): item is string => typeof item === "string" && item.trim().length > 0,
+    );
+    if (items.length === 0) {
+      return null;
+    }
+
+    return {
+      type: "list",
+      title: value.title,
+      items,
+    };
+  }
+
+  if (value.type === "kv") {
+    if (typeof value.title !== "string" || !Array.isArray(value.rows)) {
+      return null;
+    }
+
+    const rows = value.rows
+      .map((row) => {
+        if (
+          !isObject(row) ||
+          typeof row.label !== "string" ||
+          typeof row.value !== "string"
+        ) {
+          return null;
+        }
+
+        return { label: row.label, value: row.value };
+      })
+      .filter(
+        (row): row is { label: string; value: string } => Boolean(row),
+      );
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return {
+      type: "kv",
+      title: value.title,
+      rows,
+    };
+  }
+
+  if (value.type === "tags") {
+    if (!Array.isArray(value.tags)) {
+      return null;
+    }
+
+    const tags = value.tags.filter(
+      (tag): tag is string => typeof tag === "string" && tag.trim().length > 0,
+    );
+    if (tags.length === 0) {
+      return null;
+    }
+
+    return {
+      type: "tags",
+      title: typeof value.title === "string" ? value.title : undefined,
+      tags,
+    };
+  }
+
+  if (value.type === "text") {
+    if (typeof value.body !== "string") {
+      return null;
+    }
+
+    return {
+      type: "text",
+      title: typeof value.title === "string" ? value.title : undefined,
+      body: value.body,
+    };
+  }
+
+  return null;
+}
+
+function parseAssistantBlocks(value: unknown): ChatBlock[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const blocks = value
+    .map((block) => parseChatBlock(block))
+    .filter((block): block is ChatBlock => Boolean(block));
+
+  return blocks.length > 0 ? blocks : undefined;
+}
+
 function parseStep(value: unknown): DemoStep | null {
   if (
     !isObject(value) ||
@@ -203,6 +307,7 @@ function parseStep(value: unknown): DemoStep | null {
       id: value.id,
       type: "assistant",
       text: value.text,
+      blocks: parseAssistantBlocks(value.blocks),
       postDelayMs,
     };
   }

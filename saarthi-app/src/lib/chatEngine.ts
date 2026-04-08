@@ -52,6 +52,7 @@ const flowLabels: Record<FlowKey, string> = {
   improvement: 'Micro-Improvement Planner',
   story: 'Story Capture',
   companion: 'Saathi Companion',
+  mentoring: 'Mentoring Support',
   program: 'Program/Design Companion',
 }
 
@@ -86,6 +87,9 @@ export function getComposerPlaceholder(flow: FlowKey) {
   }
   if (flow === 'companion') {
     return 'Ask contextual questions (example: What worked in similar schools?)'
+  }
+  if (flow === 'mentoring') {
+    return 'Ask for mentor matches, practical sessions, or next-step coaching support'
   }
   return 'Try: set objective: ..., set indicators: ..., show program snapshot'
 }
@@ -183,6 +187,14 @@ export function getChatSuggestions({
     }))
   }
 
+  if (flow === 'mentoring') {
+    return [
+      { id: 'men-1', flow, label: 'Find mentors', prompt: 'recommend mentors for classroom engagement' },
+      { id: 'men-2', flow, label: 'Join short session', prompt: 'show practical mentoring sessions I can join this week' },
+      { id: 'men-3', flow, label: 'Set mentoring goal', prompt: 'help me set a 2-week classroom engagement goal' },
+    ]
+  }
+
   return [
     { id: 'pro-1', flow, label: 'Show program snapshot', prompt: 'show program snapshot' },
     { id: 'pro-2', flow, label: 'Set objective', prompt: 'set objective: improve classroom participation through active learning routines' },
@@ -221,6 +233,9 @@ export function resolveChatResponse(params: ChatEngineInput): ChatEngineResult {
     return resolveStoryResponse(params)
   }
   if (params.flow === 'companion') {
+    return resolveCompanionResponse(params)
+  }
+  if (params.flow === 'mentoring') {
     return resolveCompanionResponse(params)
   }
   return resolveProgramResponse(params)

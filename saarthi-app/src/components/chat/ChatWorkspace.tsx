@@ -45,6 +45,21 @@ interface ChatWorkspaceProps {
 
 const defaultTypingMsPerChar = 24
 const defaultPostStepDelayMs = 700
+const devTypingSpeedMultiplier = 0.2
+const minTypingDelayMs = 1
+
+function parseTypingSpeedMultiplier() {
+  const raw = import.meta.env.VITE_SIMULATION_TYPING_SPEED_MULTIPLIER
+  const parsed = typeof raw === 'string' ? Number(raw) : Number.NaN
+
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed
+  }
+
+  return import.meta.env.DEV ? devTypingSpeedMultiplier : 1
+}
+
+const typingSpeedMultiplier = parseTypingSpeedMultiplier()
 
 export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) {
   const idRef = useRef(0)
@@ -562,7 +577,12 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
           }
 
           setDraft(step.text.slice(0, cursor))
-          await wait(step.typingMsPerChar ?? defaultTypingMsPerChar)
+          const baseTypingDelay = step.typingMsPerChar ?? defaultTypingMsPerChar
+          const adjustedTypingDelay = Math.max(
+            minTypingDelayMs,
+            Math.round(baseTypingDelay * typingSpeedMultiplier),
+          )
+          await wait(adjustedTypingDelay)
         }
 
         if (cancelled) {
@@ -961,6 +981,7 @@ function pickThinkingLabel(flow: FlowKey) {
     improvement: ['Drafting a micro-improvement plan...', 'Aligning action and timeline...', 'Preparing implementation steps...'],
     story: ['Shaping your story arc...', 'Polishing impact narrative...', 'Preparing story card output...'],
     companion: ['Reviewing similar scenarios...', 'Thinking through support options...', 'Preparing contextual guidance...'],
+    mentoring: ['Matching you with practitioner mentors...', 'Preparing actionable session options...', 'Structuring mentoring next steps...'],
     program: ['Aligning program design elements...', 'Checking objective-indicator fit...', 'Preparing program snapshot...'],
   }
 

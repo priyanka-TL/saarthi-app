@@ -10,6 +10,7 @@ export type FlowKey =
   | 'improvement'
   | 'story'
   | 'companion'
+  | 'mentoring'
   | 'program'
 
 export interface CaptureAnswers {
