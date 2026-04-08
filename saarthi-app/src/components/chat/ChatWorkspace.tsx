@@ -1,4 +1,4 @@
-import { Bot, Download, SendHorizontal, UserCircle2 } from 'lucide-react'
+import { Bot, SendHorizontal, UserCircle2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -49,8 +49,11 @@ interface ChatWorkspaceProps {
 
 const defaultTypingMsPerChar = 24
 const defaultPostStepDelayMs = 700
+const baseContextNoticeDelayMs = 260
 const devTypingSpeedMultiplier = 0.2
 const minTypingDelayMs = 1
+const minComposerHeightPx = 52
+const maxComposerHeightPx = 220
 
 function parseTypingSpeedMultiplier() {
   const raw = import.meta.env.VITE_SIMULATION_TYPING_SPEED_MULTIPLIER
@@ -68,6 +71,7 @@ const typingSpeedMultiplier = parseTypingSpeedMultiplier()
 export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) {
   const idRef = useRef(0)
   const endRef = useRef<HTMLDivElement | null>(null)
+  const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null)
   const prefersReducedMotionRef = useRef(false)
   const simulationStateRef = useRef<'idle' | 'running' | 'awaiting-user' | 'completed'>('idle')
   const awaitingScriptedUserStepRef = useRef<DemoUserStep | null>(null)
@@ -256,6 +260,26 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       block: 'end',
     })
   }, [isAssistantThinking, messages])
+
+  const syncComposerHeight = useCallback(() => {
+    const textarea = composerTextareaRef.current
+    if (!textarea) {
+      return
+    }
+
+    textarea.style.height = 'auto'
+    const nextHeight = Math.min(
+      maxComposerHeightPx,
+      Math.max(minComposerHeightPx, textarea.scrollHeight),
+    )
+    textarea.style.height = `${nextHeight}px`
+    textarea.style.overflowY =
+      textarea.scrollHeight > maxComposerHeightPx ? 'auto' : 'hidden'
+  }, [])
+
+  useEffect(() => {
+    syncComposerHeight()
+  }, [draft, syncComposerHeight])
 
   const nextId = useCallback(() => {
     idRef.current += 1
@@ -461,12 +485,14 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       text: input,
     }
 
+    setMessages((previous) => [...previous, userMessage])
+
+    if (contextNoticeMessage) {
+      await wait(getContextNoticeDelayMs(contextNoticeMessage.text))
+      setMessages((previous) => [...previous, contextNoticeMessage])
+    }
+
     if (options?.skipEngineResponse) {
-      setMessages((previous) => [
-        ...previous,
-        userMessage,
-        ...(contextNoticeMessage ? [contextNoticeMessage] : []),
-      ])
       return
     }
 
@@ -499,12 +525,6 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       text: engineResult.text,
       blocks: engineResult.blocks,
     }
-
-    setMessages((previous) => [
-      ...previous,
-      userMessage,
-      ...(contextNoticeMessage ? [contextNoticeMessage] : []),
-    ])
 
     setAssistantThinkingLabel(pickThinkingLabel(responseFlow))
     setIsAssistantThinking(true)
@@ -781,11 +801,12 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       <div className="sticky bottom-0 border-t border-border/80 bg-card/95 px-4 py-3 backdrop-blur md:px-6">
         <form className="flex items-center gap-2" onSubmit={onSubmit}>
           <Textarea
-            className="max-h-40 min-h-[52px] resize-none rounded-2xl bg-background transition-[background-color,border-color,box-shadow] motion-transition-md focus-visible:border-primary/40 focus-visible:bg-card"
+            className="min-h-[52px] max-h-[220px] resize-none rounded-2xl bg-background transition-[background-color,border-color,box-shadow] motion-transition-md focus-visible:border-primary/40 focus-visible:bg-card"
             disabled={isDraftAutoTyping || isAssistantThinking}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={onKeyDown}
             placeholder={getComposerPlaceholder(effectiveFlow)}
+            ref={composerTextareaRef}
             value={draft}
           />
           <Button
@@ -807,7 +828,11 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   )
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({
+  message,
+}: {
+  message: ChatMessage
+}) {
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
 
@@ -929,7 +954,11 @@ function AssistantThinkingBubble({ label }: { label: string }) {
   )
 }
 
-function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
+function AssistantBlocks({
+  blocks,
+}: {
+  blocks: ChatBlock[]
+}) {
   return (
     <div className="mt-3 space-y-2.5">
       {blocks.map((block, index) => {
@@ -953,6 +982,8 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
         }
 
         if (block.type === 'kv') {
+          const cardAction = block.action
+
           return (
             <div
               className="rounded-xl border border-border bg-card/70 p-3 motion-safe:animate-fade-up-sm motion-safe:[animation-fill-mode:both]"
@@ -968,6 +999,19 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
                   </div>
                 ))}
               </div>
+              {cardAction ? (
+                <div className="mt-3">
+                  <Button
+                    className="h-8 rounded-lg px-3 text-xs"
+                    disabled
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    {cardAction.label}
+                  </Button>
+                </div>
+              ) : null}
             </div>
           )
         }
@@ -1008,27 +1052,16 @@ function AssistantBlocks({ blocks }: { blocks: ChatBlock[] }) {
               ) : null}
               <div className="mt-2 flex flex-wrap gap-2">
                 {block.actions.map((action) => (
-                  action.url ? (
-                    <a
-                      className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
-                      href={action.url}
-                      key={`${action.label}-${action.url ?? 'no-url'}`}
-                      rel="noreferrer noopener"
-                      target="_blank"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      {action.label}
-                    </a>
-                  ) : (
-                    <button
-                      className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary"
-                      key={`${action.label}-button`}
-                      type="button"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      {action.label}
-                    </button>
-                  )
+                  <Button
+                    className="h-8 rounded-lg px-3 text-xs"
+                    key={action.label}
+                    disabled
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    {action.label}
+                  </Button>
                 ))}
               </div>
             </div>
@@ -1104,6 +1137,12 @@ function getScriptedAssistantDelayMs(text: string) {
   const textContribution = Math.min(780, text.length * 8)
   const jitter = Math.floor(Math.random() * 180)
   return Math.min(1700, base + textContribution + jitter)
+}
+
+function getContextNoticeDelayMs(text: string) {
+  const textContribution = Math.min(240, text.length * 3)
+  const jitter = Math.floor(Math.random() * 120)
+  return Math.min(720, baseContextNoticeDelayMs + textContribution + jitter)
 }
 
 function wait(ms: number) {

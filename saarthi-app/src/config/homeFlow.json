@@ -256,7 +256,37 @@
         {
           "id": "saathi-goal-options",
           "type": "assistant",
-          "text": "Great. There are a couple of activities you can do to increase awareness. Which one do you want to proceed with?\n\nContact 80% of nearby parents in 3 weeks and talk to them about the school facilities\nConduct open-house events to drive awareness of the school",
+          "text": "Great. Here are two options to increase awareness. Please reply with Option 1 or Option 2.",
+          "blocks": [
+            {
+              "type": "kv",
+              "title": "Option 1",
+              "rows": [
+                {
+                  "label": "Goal",
+                  "value": "Contact 80% of nearby parents in 3 weeks"
+                },
+                {
+                  "label": "Activity",
+                  "value": "Talk to parents directly about school facilities and outcomes"
+                }
+              ]
+            },
+            {
+              "type": "kv",
+              "title": "Option 2",
+              "rows": [
+                {
+                  "label": "Goal",
+                  "value": "Improve parent trust through school visibility"
+                },
+                {
+                  "label": "Activity",
+                  "value": "Conduct open-house events to drive awareness of the school"
+                }
+              ]
+            }
+          ],
           "postDelayMs": 700
         },
         {
@@ -324,7 +354,11 @@
                   "label": "Best for",
                   "value": "Grades 4-6 classroom participation"
                 }
-              ]
+              ],
+              "action": {
+                "label": "Connect",
+                "prompt": "Connect me with Meera Nair for mentoring support."
+              }
             },
             {
               "type": "kv",
@@ -338,7 +372,11 @@
                   "label": "Best for",
                   "value": "Improving engagement in resource-constrained schools"
                 }
-              ]
+              ],
+              "action": {
+                "label": "Connect",
+                "prompt": "Connect me with Rakesh Yadav for mentoring support."
+              }
             },
             {
               "type": "kv",
@@ -352,7 +390,11 @@
                   "label": "Best for",
                   "value": "Building student voice during class discussions"
                 }
-              ]
+              ],
+              "action": {
+                "label": "Connect",
+                "prompt": "Connect me with Farida Khan for mentoring support."
+              }
             }
           ],
           "postDelayMs": 800
@@ -374,7 +416,11 @@
                   "label": "Outcome",
                   "value": "Leave with 5 routines to try in your next class"
                 }
-              ]
+              ],
+              "action": {
+                "label": "Enroll",
+                "prompt": "Enroll me in Session 1: 5 routines to increase participation tomorrow."
+              }
             },
             {
               "type": "kv",
@@ -388,7 +434,11 @@
                   "label": "Outcome",
                   "value": "Use question stems that trigger student responses"
                 }
-              ]
+              ],
+              "action": {
+                "label": "Enroll",
+                "prompt": "Enroll me in Session 2: Designing better questions for student thinking."
+              }
             },
             {
               "type": "kv",
@@ -402,7 +452,11 @@
                   "label": "Outcome",
                   "value": "Track and review participation trends every week"
                 }
-              ]
+              ],
+              "action": {
+                "label": "Enroll",
+                "prompt": "Enroll me in Session 3: Weekly engagement tracking with a simple checklist."
+              }
             }
           ],
           "postDelayMs": 800
@@ -410,7 +464,7 @@
         {
           "id": "mentoring-next-step",
           "type": "assistant",
-          "text": "Would you like to connect with a mentor now, or explore sessions first?",
+          "text": "Is there anything else I can help you with today?",
           "postDelayMs": 700
         }
       ]

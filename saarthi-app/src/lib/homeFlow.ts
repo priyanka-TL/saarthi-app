@@ -178,6 +178,42 @@ function parseChatBlock(value: unknown): ChatBlock | null {
     return null;
   }
 
+  const parseAction = (actionValue: unknown) => {
+    if (
+      !isObject(actionValue) ||
+      typeof actionValue.label !== "string" ||
+      actionValue.label.trim().length === 0
+    ) {
+      return undefined;
+    }
+
+    const prompt =
+      typeof actionValue.prompt === "string" && actionValue.prompt.trim().length > 0
+        ? actionValue.prompt
+        : undefined;
+    const url =
+      typeof actionValue.url === "string" && actionValue.url.trim().length > 0
+        ? actionValue.url
+        : undefined;
+
+    if (!prompt && !url) {
+      return undefined;
+    }
+
+    const action: { label: string; prompt?: string; url?: string } = {
+      label: actionValue.label,
+    };
+
+    if (prompt) {
+      action.prompt = prompt;
+    }
+    if (url) {
+      action.url = url;
+    }
+
+    return action;
+  };
+
   if (value.type === "list") {
     if (typeof value.title !== "string" || !Array.isArray(value.items)) {
       return null;
@@ -221,10 +257,13 @@ function parseChatBlock(value: unknown): ChatBlock | null {
       return null;
     }
 
+    const action = parseAction(value.action);
+
     return {
       type: "kv",
       title: value.title,
       rows,
+      action,
     };
   }
 
@@ -257,15 +296,19 @@ function parseChatBlock(value: unknown): ChatBlock | null {
     };
   }
 
-  if (value.type === "actions" && Array.isArray(value.actions)) {
+  if (value.type === "actions") {
+    if (!Array.isArray(value.actions)) {
+      return null;
+    }
+
     const actions = value.actions
+      .map((action) => parseAction(action))
       .filter(
-        (action): action is { label: string; url?: string } =>
-          isObject(action) &&
-          typeof action.label === "string" &&
-          (typeof action.url === "undefined" || typeof action.url === "string"),
-      )
-      .map((action) => ({ label: action.label, url: action.url }));
+        (
+          action,
+        ): action is { label: string; prompt?: string; url?: string } =>
+          Boolean(action),
+      );
 
     if (actions.length === 0) {
       return null;

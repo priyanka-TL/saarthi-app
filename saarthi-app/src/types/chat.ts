@@ -12,6 +12,7 @@ export type ChatBlock =
       type: 'kv'
       title: string
       rows: Array<{ label: string; value: string }>
+      action?: { label: string; prompt?: string; url?: string }
     }
   | {
       type: 'tags'
@@ -26,7 +27,7 @@ export type ChatBlock =
   | {
       type: 'actions'
       title?: string
-      actions: Array<{ label: string; url?: string }>
+      actions: Array<{ label: string; prompt?: string; url?: string }>
     }
 
 export interface ChatMessage {
