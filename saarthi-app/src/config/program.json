@@ -110,7 +110,7 @@
         {
           "id": "uc03-assistant-6",
           "type": "assistant",
-          "text": "Perfect. Here is your compiled LFA Program Plan:\n\nProgram Title: Foundational Reading Improvement Program, Punjab (2026-27)\nImpact: Grade 2-3 students read independently by year end\nImpact Metric: 80% at/above benchmark in annual assessment\nOutcomes: (1) Reading circles run 3x/week (2) Monthly student-level tracking in place\nMethodology: 2-day training -> fortnightly peer observation -> monthly review circle\nPersonas: Principal, Teachers, CRC/Mentor, Parents with clear responsibilities\nActivities + Metrics: 5 core activities with weekly/fortnightly/monthly process tracking\nInputs: Venue confirmed; tracking sheet + activity cards required\nDuration: 12 months with quarterly review milestones",
+          "text": "Perfect. Here is your compiled LFA Program Plan:\n\nPROGRAM OVERVIEW\n- Title: Foundational Reading Improvement Program, Punjab (2026-27)\n- Duration: 12 months with quarterly review milestones\n\nIMPACT\n- Statement: Grade 2-3 students read independently by year end\n- Metric: 80% at/above benchmark in annual assessment\n\nOUTCOMES\n1) Reading circles run 3x/week\n2) Monthly student-level tracking is in place\n\nMETHODOLOGY\n- 2-day training -> fortnightly peer observation -> monthly review circle\n\nPERSONAS\n- Principal\n- Teachers\n- CRC/Mentor\n- Parents (with clear responsibilities)\n\nACTIVITIES + METRICS\n- 5 core activities with weekly/fortnightly/monthly process tracking\n\nINPUTS\n- Venue confirmed\n- Tracking sheet required\n- Activity cards required",
           "blocks": [
             {
               "type": "kv",
