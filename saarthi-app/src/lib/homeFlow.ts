@@ -196,10 +196,6 @@ function parseChatBlock(value: unknown): ChatBlock | null {
         ? actionValue.url
         : undefined;
 
-    if (!prompt && !url) {
-      return undefined;
-    }
-
     const action: { label: string; prompt?: string; url?: string } = {
       label: actionValue.label,
     };
