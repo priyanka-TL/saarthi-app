@@ -27,12 +27,15 @@ export interface DemoUserStep extends BaseDemoStep {
   text: string
   typingMsPerChar?: number
   skipEngineResponse?: boolean
+  targetContextId?: string
+  contextNotice?: string
 }
 
 export interface DemoAssistantStep extends BaseDemoStep {
   type: 'assistant'
   text: string
   blocks?: ChatBlock[]
+  agentName?: string
 }
 
 export type DemoStep = DemoUserStep | DemoAssistantStep
@@ -55,4 +58,11 @@ export interface HomeFlowConfig {
 export interface ResolvedRouteMatch {
   rule: RoutingRule
   context: RouteContext
+}
+
+export interface ChatHistoryEntry {
+  id: string
+  title: string
+  description: string
+  config: HomeFlowConfig
 }

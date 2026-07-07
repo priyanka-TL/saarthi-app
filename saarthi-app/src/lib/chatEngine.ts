@@ -54,6 +54,7 @@ const flowLabels: Record<FlowKey, string> = {
   companion: 'Saathi Companion',
   mentoring: 'Mentoring Support',
   program: 'Program/Design Companion',
+  history: 'Chat History',
 }
 
 export function getFlowLabel(flow: FlowKey) {
@@ -90,6 +91,9 @@ export function getComposerPlaceholder(flow: FlowKey) {
   }
   if (flow === 'mentoring') {
     return 'Ask for mentor matches, practical sessions, or next-step coaching support'
+  }
+  if (flow === 'history') {
+    return 'This is a recorded example - pick another from Chat History, or go Home.'
   }
   return 'Try: set objective: ..., set indicators: ..., show program snapshot'
 }
@@ -237,6 +241,11 @@ export function resolveChatResponse(params: ChatEngineInput): ChatEngineResult {
   }
   if (params.flow === 'mentoring') {
     return resolveCompanionResponse(params)
+  }
+  if (params.flow === 'history') {
+    return {
+      text: 'This is a recorded example conversation. Pick another one from Chat History, or go Home to continue.',
+    }
   }
   return resolveProgramResponse(params)
 }

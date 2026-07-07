@@ -12,6 +12,7 @@ export type FlowKey =
   | 'companion'
   | 'mentoring'
   | 'program'
+  | 'history'
 
 export interface CaptureAnswers {
   where: string

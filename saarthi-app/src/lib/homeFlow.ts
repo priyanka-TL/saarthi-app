@@ -22,6 +22,7 @@ const routedFlows: RoutedFlowKey[] = [
   "companion",
   "mentoring",
   "program",
+  "history",
 ];
 
 const defaultConfig: HomeFlowConfig = {
@@ -355,6 +356,14 @@ function parseStep(value: unknown): DemoStep | null {
         typeof value.skipEngineResponse === "boolean"
           ? value.skipEngineResponse
           : undefined,
+      targetContextId:
+        typeof value.targetContextId === "string"
+          ? value.targetContextId
+          : undefined,
+      contextNotice:
+        typeof value.contextNotice === "string"
+          ? value.contextNotice
+          : undefined,
     };
     return step;
   }
@@ -366,6 +375,8 @@ function parseStep(value: unknown): DemoStep | null {
       text: value.text,
       postDelayMs,
       blocks: parseChatBlocks(value.blocks),
+      agentName:
+        typeof value.agentName === "string" ? value.agentName : undefined,
     };
   }
 
