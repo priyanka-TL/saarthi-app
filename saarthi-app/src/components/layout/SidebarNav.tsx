@@ -3,6 +3,7 @@ import {
   ChevronRight,
   Ear,
   Globe,
+  History,
   Home,
   Lightbulb,
   MessagesSquare,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useState, type ComponentType } from 'react'
 
+import { chatHistoryEntries } from '@/lib/chatHistory'
 import { cn } from '@/lib/utils'
 import type { FlowKey } from '@/types/saarthi'
 
@@ -77,9 +79,11 @@ const quickActions: Array<{ key: FlowKey; label: string; icon: ComponentType<{ c
 interface SidebarNavProps {
   activeFlow: FlowKey
   onFlowChange: (flow: FlowKey) => void
+  activeHistoryId: string | null
+  onSelectHistory: (id: string) => void
 }
 
-export function SidebarNav({ activeFlow, onFlowChange }: SidebarNavProps) {
+export function SidebarNav({ activeFlow, onFlowChange, activeHistoryId, onSelectHistory }: SidebarNavProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const isAdvancedOpen = activeFlow !== 'home' || advancedOpen
 
@@ -108,6 +112,36 @@ export function SidebarNav({ activeFlow, onFlowChange }: SidebarNavProps) {
           </p>
           <p className="mt-1 text-xs text-muted-foreground">Main chat workspace with automatic context routing</p>
         </button>
+      </div>
+
+      <div>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Chat History</p>
+        <div className="space-y-2.5">
+          {chatHistoryEntries.map((entry) => (
+            <button
+              className={cn(
+                'w-full rounded-2xl border px-3 py-3 text-left transition-[transform,background-color,border-color,color,box-shadow] motion-transition-md active:scale-[0.98]',
+                entry.id === activeHistoryId
+                  ? 'border-primary/35 bg-primary/10 text-foreground'
+                  : 'border-border bg-card/90 text-foreground hover:border-primary/25 hover:bg-muted',
+              )}
+              key={entry.id}
+              onClick={() => onSelectHistory(entry.id)}
+              type="button"
+            >
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <History
+                  className={cn(
+                    'h-4 w-4 transition-transform motion-transition-md',
+                    entry.id === activeHistoryId ? 'scale-105 text-primary' : 'text-primary/85',
+                  )}
+                />
+                {entry.title}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{entry.description}</p>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>

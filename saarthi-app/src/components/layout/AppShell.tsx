@@ -17,6 +17,8 @@ interface AppShellProps extends PropsWithChildren {
   onFlowChange: (flow: FlowKey) => void;
   selectedChallengeLabel: string;
   selectedChallenge: ChallengeKey;
+  activeHistoryId: string | null;
+  onSelectHistory: (id: string) => void;
 }
 
 export function AppShell({
@@ -25,6 +27,8 @@ export function AppShell({
   children,
   selectedChallengeLabel,
   selectedChallenge,
+  activeHistoryId,
+  onSelectHistory,
 }: AppShellProps) {
   return (
     <div className="h-dvh overflow-hidden bg-gradient-to-br from-background via-background to-secondary/45 text-foreground">
@@ -37,7 +41,12 @@ export function AppShell({
             selectedChallenge={selectedChallenge}
             selectedChallengeLabel={selectedChallengeLabel}
           />
-          <SidebarNav activeFlow={activeFlow} onFlowChange={onFlowChange} />
+          <SidebarNav
+            activeFlow={activeFlow}
+            onFlowChange={onFlowChange}
+            activeHistoryId={activeHistoryId}
+            onSelectHistory={onSelectHistory}
+          />
         </aside>
 
         <main
@@ -74,6 +83,8 @@ export function AppShell({
                     <SidebarNav
                       activeFlow={activeFlow}
                       onFlowChange={onFlowChange}
+                      activeHistoryId={activeHistoryId}
+                      onSelectHistory={onSelectHistory}
                     />
                   </div>
                 </SheetContent>

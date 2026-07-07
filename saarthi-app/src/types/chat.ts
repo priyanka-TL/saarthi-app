@@ -37,6 +37,7 @@ export interface ChatMessage {
   flow: FlowKey
   timestamp: string
   blocks?: ChatBlock[]
+  agentName?: string
 }
 
 export interface ChatSuggestion {

@@ -15,6 +15,7 @@ import {
   commonsFlowConfig,
   commonsSimulationEnabled,
 } from '@/lib/commonsFlow'
+import { getChatHistoryById } from '@/lib/chatHistory'
 import {
   feedbackFlowConfig,
   feedbackSimulationEnabled,
@@ -45,6 +46,7 @@ import type { FlowKey } from '@/types/saarthi'
 interface ChatWorkspaceProps {
   activeFlow: FlowKey
   onFlowChange: (flow: FlowKey) => void
+  activeHistoryId: string | null
 }
 
 const defaultTypingMsPerChar = 24
@@ -68,7 +70,7 @@ function parseTypingSpeedMultiplier() {
 
 const typingSpeedMultiplier = parseTypingSpeedMultiplier()
 
-export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) {
+export function ChatWorkspace({ activeFlow, onFlowChange, activeHistoryId }: ChatWorkspaceProps) {
   const idRef = useRef(0)
   const endRef = useRef<HTMLDivElement | null>(null)
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -86,6 +88,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const [saathiContext, setSaathiContext] = useState<RouteContext | null>(null)
   const [commonsContext, setCommonsContext] = useState<RouteContext | null>(null)
   const [programContext, setProgramContext] = useState<RouteContext | null>(null)
+  const [historyContext, setHistoryContext] = useState<RouteContext | null>(null)
 
   const {
     selectedChallenge,
@@ -106,17 +109,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
 
   const dataset = challengeData[selectedChallenge]
 
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    return [
-      {
-        id: 'msg-initial',
-        role: 'assistant',
-        flow: 'home',
-        timestamp: new Date().toISOString(),
-        text: `Namaste Akash. How can I help you today?`,
-      },
-    ]
-  })
+  const [messages, setMessages] = useState<ChatMessage[]>(() => createInitialMessages())
 
   const homeContextRef = useRef(homeContext)
   const feedbackContextRef = useRef(feedbackContext)
@@ -124,7 +117,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const saathiContextRef = useRef(saathiContext)
   const commonsContextRef = useRef(commonsContext)
   const programContextRef = useRef(programContext)
+  const historyContextRef = useRef(historyContext)
   const activeFlowRef = useRef(activeFlow)
+  const activeHistoryIdRef = useRef(activeHistoryId)
 
   useEffect(() => {
     homeContextRef.current = homeContext
@@ -151,17 +146,28 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }, [programContext])
 
   useEffect(() => {
+    historyContextRef.current = historyContext
+  }, [historyContext])
+
+  useEffect(() => {
     activeFlowRef.current = activeFlow
   }, [activeFlow])
 
-  const isHomeRoutedMode = activeFlow === 'home'
-  const isFeedbackRoutedMode = activeFlow === 'feedback'
-  const isStoryRoutedMode = activeFlow === 'story'
-  const isSaathiRoutedMode = activeFlow === 'companion'
-  const isCommonsRoutedMode = activeFlow === 'commons'
-  const isProgramRoutedMode = activeFlow === 'program'
+  useEffect(() => {
+    activeHistoryIdRef.current = activeHistoryId
+  }, [activeHistoryId])
 
-  const effectiveFlow = isHomeRoutedMode
+  const isHistoryMode = Boolean(activeHistoryId)
+  const isHomeRoutedMode = !isHistoryMode && activeFlow === 'home'
+  const isFeedbackRoutedMode = !isHistoryMode && activeFlow === 'feedback'
+  const isStoryRoutedMode = !isHistoryMode && activeFlow === 'story'
+  const isSaathiRoutedMode = !isHistoryMode && activeFlow === 'companion'
+  const isCommonsRoutedMode = !isHistoryMode && activeFlow === 'commons'
+  const isProgramRoutedMode = !isHistoryMode && activeFlow === 'program'
+
+  const effectiveFlow = isHistoryMode
+    ? historyContext?.flow ?? 'history'
+    : isHomeRoutedMode
     ? homeContext?.flow ?? 'home'
     : isFeedbackRoutedMode
     ? feedbackContext?.flow ?? 'capture'
@@ -175,7 +181,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     ? programContext?.flow ?? 'program'
     : activeFlow
 
-  const contextLabel = isHomeRoutedMode
+  const contextLabel = isHistoryMode
+    ? historyContext?.label
+    : isHomeRoutedMode
     ? homeContext?.label
     : isFeedbackRoutedMode
     ? feedbackContext?.label
@@ -188,7 +196,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     : isProgramRoutedMode
     ? programContext?.label
     : getFlowLabel(activeFlow)
-  const subContextLabel = isHomeRoutedMode
+  const subContextLabel = isHistoryMode
+    ? historyContext?.subLabel
+    : isHomeRoutedMode
     ? homeContext?.subLabel
     : isFeedbackRoutedMode
     ? feedbackContext?.subLabel
@@ -202,14 +212,15 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     ? programContext?.subLabel
     : undefined
   const isRoutedContextUnset =
-    (isHomeRoutedMode && !homeContext)
+    (isHistoryMode && !historyContext)
+    || (isHomeRoutedMode && !homeContext)
     || (isFeedbackRoutedMode && !feedbackContext)
     || (isStoryRoutedMode && !storyContext)
     || (isSaathiRoutedMode && !saathiContext)
     || (isCommonsRoutedMode && !commonsContext)
     || (isProgramRoutedMode && !programContext)
-  const showUnsetContextState = activeFlow === 'home' && isRoutedContextUnset
-  const displayContextLabel = contextLabel ?? (activeFlow !== 'home' ? getFlowLabel(activeFlow) : undefined)
+  const showUnsetContextState = !isHistoryMode && activeFlow === 'home' && isRoutedContextUnset
+  const displayContextLabel = contextLabel ?? (isHistoryMode || activeFlow !== 'home' ? getFlowLabel(effectiveFlow) : undefined)
 
   const homeDemoScript = useMemo(
     () => getDemoScriptById(homeFlowConfig.defaultScriptId, homeFlowConfig),
@@ -234,6 +245,17 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   const programDemoScript = useMemo(
     () => getDemoScriptById(programFlowConfig.defaultScriptId, programFlowConfig),
     [],
+  )
+  const activeHistoryEntry = useMemo(
+    () => (activeHistoryId ? getChatHistoryById(activeHistoryId) : null),
+    [activeHistoryId],
+  )
+  const historyDemoScript = useMemo(
+    () =>
+      activeHistoryEntry
+        ? getDemoScriptById(activeHistoryEntry.config.defaultScriptId, activeHistoryEntry.config)
+        : null,
+    [activeHistoryEntry],
   )
 
   useEffect(() => {
@@ -288,6 +310,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
 
   const getRuntimeFlow = useCallback(
     (mode: FlowKey = activeFlowRef.current): FlowKey => {
+      if (activeHistoryIdRef.current) {
+        return historyContextRef.current?.flow ?? 'history'
+      }
       if (mode === 'home') {
         return homeContextRef.current?.flow ?? 'home'
       }
@@ -312,6 +337,10 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   )
 
   const setContextByMode = useCallback((mode: FlowKey, context: RouteContext | null) => {
+    if (activeHistoryIdRef.current) {
+      setHistoryContext(context)
+      return
+    }
     if (mode === 'home') {
       setHomeContext(context)
       return
@@ -338,6 +367,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }, [])
 
   const getContextByMode = useCallback((mode: FlowKey): RouteContext | null => {
+    if (activeHistoryIdRef.current) {
+      return historyContextRef.current
+    }
     if (mode === 'home') {
       return homeContextRef.current
     }
@@ -360,7 +392,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }, [])
 
   useEffect(() => {
-    if (activeFlow === 'home') {
+    if (activeHistoryId || activeFlow === 'home') {
       return
     }
 
@@ -386,9 +418,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     }
 
     setContextByMode(activeFlow, defaultContext)
-  }, [activeFlow, getContextByMode, setContextByMode])
+  }, [activeFlow, activeHistoryId, getContextByMode, setContextByMode])
 
-  const appendScriptedAssistantTurn = useCallback((text: string, blocks?: ChatBlock[]) => {
+  const appendScriptedAssistantTurn = useCallback((text: string, blocks?: ChatBlock[], agentName?: string) => {
     const routedFlow = getRuntimeFlow()
 
     const assistantMessage: ChatMessage = {
@@ -398,12 +430,16 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       timestamp: new Date().toISOString(),
       text,
       blocks,
+      agentName,
     }
 
     setMessages((previous) => [...previous, assistantMessage])
   }, [getRuntimeFlow, nextId])
 
-  const sendPrompt = useCallback(async (rawPrompt: string, options?: { skipEngineResponse?: boolean }) => {
+  const sendPrompt = useCallback(async (
+    rawPrompt: string,
+    options?: { skipEngineResponse?: boolean; targetContextId?: string; contextNotice?: string },
+  ) => {
     const input = rawPrompt.trim()
     if (!input) {
       return
@@ -412,7 +448,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     let responseFlow: FlowKey = getRuntimeFlow(activeFlow)
     let contextNoticeMessage: ChatMessage | null = null
 
-    const routedFlowConfig = activeFlow === 'home'
+    const routedFlowConfig = activeHistoryId
+      ? activeHistoryEntry?.config ?? null
+      : activeFlow === 'home'
       ? homeFlowConfig
       : activeFlow === 'feedback'
       ? feedbackFlowConfig
@@ -429,7 +467,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     if (routedFlowConfig) {
       const currentModeContext = getContextByMode(activeFlow)
 
-      if (activeFlow !== 'home' && !currentModeContext) {
+      if (!activeHistoryId && activeFlow !== 'home' && !currentModeContext) {
         const defaultContext = getPreferredContextForMode(activeFlow, routedFlowConfig)
         if (defaultContext) {
           setContextByMode(activeFlow, defaultContext)
@@ -437,20 +475,44 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
         }
       }
 
-      const routeMatch = resolveRouteMatch(input, routedFlowConfig)
-      if (routeMatch) {
-        responseFlow = routeMatch.context.flow
+      if (options?.targetContextId) {
+        const targetContext = routedFlowConfig.contexts.find(
+          (context) => context.id === options.targetContextId,
+        )
 
-        if (routeMatch.context.id !== currentModeContext?.id) {
-          setContextByMode(activeFlow, routeMatch.context)
+        if (targetContext) {
+          responseFlow = targetContext.flow
 
-          if (routeMatch.rule.notice.trim().length > 0) {
-            contextNoticeMessage = {
-              id: nextId(),
-              role: 'system',
-              flow: routeMatch.context.flow,
-              timestamp: new Date().toISOString(),
-              text: routeMatch.rule.notice,
+          if (targetContext.id !== currentModeContext?.id) {
+            setContextByMode(activeFlow, targetContext)
+
+            if (options.contextNotice && options.contextNotice.trim().length > 0) {
+              contextNoticeMessage = {
+                id: nextId(),
+                role: 'system',
+                flow: targetContext.flow,
+                timestamp: new Date().toISOString(),
+                text: options.contextNotice,
+              }
+            }
+          }
+        }
+      } else {
+        const routeMatch = resolveRouteMatch(input, routedFlowConfig)
+        if (routeMatch) {
+          responseFlow = routeMatch.context.flow
+
+          if (routeMatch.context.id !== currentModeContext?.id) {
+            setContextByMode(activeFlow, routeMatch.context)
+
+            if (routeMatch.rule.notice.trim().length > 0) {
+              contextNoticeMessage = {
+                id: nextId(),
+                role: 'system',
+                flow: routeMatch.context.flow,
+                timestamp: new Date().toISOString(),
+                text: routeMatch.rule.notice,
+              }
             }
           }
         }
@@ -536,6 +598,8 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     }
   }, [
     activeFlow,
+    activeHistoryEntry,
+    activeHistoryId,
     askCompanion,
     captureAnswers,
     dataset,
@@ -563,7 +627,16 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
   }, [sendPrompt])
 
   useEffect(() => {
-    const simulationEnabled = activeFlow === 'home'
+    setMessages(createInitialMessages())
+    setHistoryContext(null)
+    setDraft('')
+    simulationStateRef.current = 'idle'
+  }, [activeHistoryId])
+
+  useEffect(() => {
+    const simulationEnabled = activeHistoryId
+      ? homeSimulationEnabled
+      : activeFlow === 'home'
       ? homeSimulationEnabled
       : activeFlow === 'feedback'
       ? feedbackSimulationEnabled
@@ -576,7 +649,9 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
       : activeFlow === 'program'
       ? programSimulationEnabled
       : false
-    const demoScript = activeFlow === 'home'
+    const demoScript = activeHistoryId
+      ? historyDemoScript
+      : activeFlow === 'home'
       ? homeDemoScript
       : activeFlow === 'feedback'
       ? feedbackDemoScript
@@ -624,7 +699,7 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
             setIsAssistantThinking(false)
             return
           }
-          appendScriptedAssistantTurn(step.text, step.blocks)
+          appendScriptedAssistantTurn(step.text, step.blocks, step.agentName)
           setIsAssistantThinking(false)
           await wait(step.postDelayMs ?? defaultPostStepDelayMs)
           continue
@@ -695,10 +770,12 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
     }
   }, [
     activeFlow,
+    activeHistoryId,
     appendScriptedAssistantTurn,
     commonsDemoScript,
     feedbackDemoScript,
     getRuntimeFlow,
+    historyDemoScript,
     homeDemoScript,
     programDemoScript,
     saathiDemoScript,
@@ -717,7 +794,11 @@ export function ChatWorkspace({ activeFlow, onFlowChange }: ChatWorkspaceProps) 
 
     const awaitingStep = awaitingScriptedUserStepRef.current
     if (awaitingStep && simulationStateRef.current === 'awaiting-user') {
-      void sendPrompt(input, { skipEngineResponse: awaitingStep.skipEngineResponse })
+      void sendPrompt(input, {
+        skipEngineResponse: awaitingStep.skipEngineResponse,
+        targetContextId: awaitingStep.targetContextId,
+        contextNotice: awaitingStep.contextNotice,
+      })
       setDraft('')
       const resume = resumeSimulationRef.current
       resumeSimulationRef.current = null
@@ -872,6 +953,10 @@ function MessageBubble({
             : 'border-border bg-background text-foreground',
         )}
       >
+        {!isUser && message.agentName ? (
+          <p className="mb-1 text-xs font-semibold text-primary">{message.agentName}</p>
+        ) : null}
+
         <p className={cn('whitespace-pre-wrap text-sm leading-relaxed', isUser ? 'text-primary-foreground' : 'text-foreground')}>
           {renderMessageText(message.text)}
         </p>
@@ -879,7 +964,7 @@ function MessageBubble({
         {message.blocks && message.blocks.length > 0 ? <AssistantBlocks blocks={message.blocks} /> : null}
 
         <p className={cn('mt-2 text-[11px]', isUser ? 'text-primary-foreground/75' : 'text-muted-foreground')}>
-          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {getFlowLabel(message.flow)}
+          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {message.agentName ?? getFlowLabel(message.flow)}
         </p>
       </div>
 
@@ -1098,6 +1183,7 @@ function pickThinkingLabel(flow: FlowKey) {
     companion: ['Reviewing similar scenarios...', 'Thinking through support options...', 'Preparing contextual guidance...'],
     mentoring: ['Matching you with practitioner mentors...', 'Preparing actionable session options...', 'Structuring mentoring next steps...'],
     program: ['Aligning program design elements...', 'Checking objective-indicator fit...', 'Preparing program snapshot...'],
+    history: ['Reviewing this example...', 'Loading the next step...', 'Preparing the next turn...'],
   }
 
   const flowLabels = labels[flow]
@@ -1149,4 +1235,16 @@ function wait(ms: number) {
   return new Promise<void>((resolve) => {
     window.setTimeout(() => resolve(), ms)
   })
+}
+
+function createInitialMessages(): ChatMessage[] {
+  return [
+    {
+      id: 'msg-initial',
+      role: 'assistant',
+      flow: 'home',
+      timestamp: new Date().toISOString(),
+      text: `Namaste Akash. How can I help you today?`,
+    },
+  ]
 }
