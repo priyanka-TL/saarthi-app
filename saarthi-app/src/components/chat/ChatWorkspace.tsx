@@ -1244,7 +1244,7 @@ function createInitialMessages(): ChatMessage[] {
       role: 'assistant',
       flow: 'home',
       timestamp: new Date().toISOString(),
-      text: `Namaste Akash. How can I help you today?`,
+      text: `Namaste. How can I help you today?`,
     },
   ]
 }
